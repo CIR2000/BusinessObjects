@@ -1,7 +1,6 @@
-using System.Reflection;
 using System;
 
-namespace BusinessObjects {
+namespace BusinessObjects.Validators {
     /// <summary>
     /// Validates that a property conforms to ISO 3166-1 alpha 2 codes.
     /// </summary>

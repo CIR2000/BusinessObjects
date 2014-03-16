@@ -1,6 +1,4 @@
-using System.Reflection;
-
-namespace BusinessObjects {
+namespace BusinessObjects.Validators {
     public class LengthValidator : Validator {
 
         private int _max, _min;

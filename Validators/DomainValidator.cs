@@ -1,7 +1,6 @@
-using System.Reflection;
 using System;
 
-namespace BusinessObjects {
+namespace BusinessObjects.Validators {
     public class DomainValidator : Validator {
 
         private string[] _domain;

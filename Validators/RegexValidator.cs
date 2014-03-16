@@ -1,7 +1,6 @@
-using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace BusinessObjects {
+namespace BusinessObjects.Validators {
     public class RegexValidator : Validator {
 
         private string _regex;

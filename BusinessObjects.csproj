@@ -31,7 +31,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace>DomainObjects</RootNamespace>
+    <RootNamespace>BusinessObjects</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

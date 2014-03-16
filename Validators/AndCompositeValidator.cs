@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace BusinessObjects {
+namespace BusinessObjects.Validators {
     public class AndCompositeValidator : Validator {
 
         private List<Validator> _validators;

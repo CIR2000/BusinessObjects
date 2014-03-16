@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Xml;
+using BusinessObjects.Validators;
 
 namespace BusinessObjects {
     /// <summary>

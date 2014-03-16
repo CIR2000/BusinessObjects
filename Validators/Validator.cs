@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace BusinessObjects {
+namespace BusinessObjects.Validators {
     /// <summary>
     /// An abstract class that contains information about a rule as well as a method to validate it.
     /// </summary>
