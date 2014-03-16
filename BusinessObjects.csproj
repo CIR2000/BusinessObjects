@@ -55,6 +55,8 @@
     <Compile Include="Validators\Validator.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="AUTHORS" />
+    <None Include="LICENSE" />
     <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSHARP.Targets" />
