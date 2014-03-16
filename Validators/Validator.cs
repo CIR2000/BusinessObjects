@@ -16,14 +16,14 @@ namespace BusinessObjects.Validators {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public Validator() { }
+        protected Validator() { }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="propertyName">The name of the property the rule is based on. This may be blank if the rule is not for any specific property.</param>
         /// <param name="description">A description of the rule that will be shown if the rule is broken.</param>
-        public Validator(string propertyName, string description) {
+        protected Validator(string propertyName, string description) {
             this.Description = description;
             this.PropertyName = propertyName;
         }

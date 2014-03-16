@@ -20,24 +20,25 @@ namespace BusinessObjects {
     /// TODO:
     /// - BeginEdit()/EndEdit() combination, and rollbacks for cancels (IEditableObject).
     /// </summary>
-    [Serializable()]
+    [Serializable]
     public abstract class BusinessObject:  
         INotifyPropertyChanged,
         IDataErrorInfo {
-        protected List<Validator> _rules;
+        protected List<Validator> Rules;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public BusinessObject() {}
-        public BusinessObject(XmlReader r) : this() { ReadXml(r); }
+        protected BusinessObject() {}
+
+        protected BusinessObject(XmlReader r) : this() { ReadXml(r); }
 
         /// <summary>
         /// Gets a value indicating whether or not this domain object is valid. 
         /// </summary>
         public virtual bool IsValid {
             get {
-                return this.Error == null;
+                return Error == null;
             }
         }
 
@@ -45,14 +46,15 @@ namespace BusinessObjects {
         /// Gets an error message indicating what is wrong with this domain object. The default is a null string.
         /// </summary>
         public virtual string Error {
-            get {
+            get
+            {
                 // Get object errors
-                string result = this[string.Empty];
+                var result = this[string.Empty];
                 // Also retrieve child objects errors
-                string childrenErrors = this.ChildrenErrors;
+                var childrenErrors = ChildrenErrors;
 
                 result += (result != null) ? Environment.NewLine + childrenErrors : childrenErrors;
-                if (result != null && result.Trim().Length == 0) {
+                if (result.Trim().Length == 0) {
                     result = null;
                 }
                 return result;
@@ -68,21 +70,22 @@ namespace BusinessObjects {
 
                 foreach (var prop in GetAllDataProperties()) {
                     // Only operate on BusinessObject types.
-                    if (prop.PropertyType.BaseType.Equals(this.GetType().BaseType)) {
-                        var childDomainObject = (BusinessObject)prop.GetValue(this, null);
-                        if (childDomainObject != null) {
-                            string childErrors = childDomainObject.Error;
-                            if (childErrors != null) {
+                    if (prop.PropertyType.BaseType != GetType().BaseType || prop.PropertyType.BaseType == null)
+                        continue;
 
-                                // Inject child object name into error messages. 
-                                // TODO Kind of hacky. Perhaps review the Error system (array?). 
-                                // IDataErrorInfo wants a string as return value however.
-                                string[] errors = childErrors.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-                                foreach (string error in errors) {
-                                    result += prop.Name + "." + error + Environment.NewLine;
-                                }
-                            }
-                        }
+                    var childDomainObject = (BusinessObject) prop.GetValue(this, null);
+                    if (childDomainObject == null) continue;
+
+                    var childErrors = childDomainObject.Error;
+                    if (childErrors == null) continue;
+
+                    // Inject child object name into error messages. 
+                    // TODO Kind of hacky. Perhaps review the Error system (array?). 
+                    // IDataErrorInfo wants a string as return value however.
+                    var errors = childErrors.Split(new[] {"\r\n"},
+                        StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var error in errors) {
+                        result += prop.Name + "." + error + Environment.NewLine;
                     }
                 }
                 return result;
@@ -96,11 +99,11 @@ namespace BusinessObjects {
         /// <returns>The error message for the property. The default is an empty string ("").</returns>
         public virtual string this[string propertyName] {
             get {
-                string result = string.Empty;
+                var result = string.Empty;
 
-                foreach (Validator r in GetBrokenRules(propertyName)) {
-                    if (propertyName == string.Empty || r.PropertyName == propertyName) {
-                        result += propertyName + r.PropertyName + ": " + r.Description;
+                foreach (var validator in GetBrokenRules(propertyName)) {
+                    if (propertyName == string.Empty || validator.PropertyName == propertyName) {
+                        result += propertyName + validator.PropertyName + ": " + validator.Description;
                         result += Environment.NewLine;
                     }
                 }
@@ -129,17 +132,17 @@ namespace BusinessObjects {
             property = CleanString(property);
             
             // If we haven't yet created the rules, create them now.
-            if (_rules == null) {
-                _rules = new List<Validator>();
-                _rules.AddRange(this.CreateRules());
+            if (Rules == null) {
+                Rules = new List<Validator>();
+                Rules.AddRange(CreateRules());
             }
-            List<Validator> broken = new List<Validator>();
+            var broken = new List<Validator>();
 
             
-            foreach (Validator validator in this._rules) {
+            foreach (var validator in Rules) {
                 // Ensure we only validate a rule 
                 if (validator.PropertyName == property || property == string.Empty) {
-                    bool isRuleBroken = !validator.Validate(this);
+                    var isRuleBroken = !validator.Validate(this);
                     //Debug.WriteLine(DateTime.Now.ToLongTimeString() + ": Validating the rule: '" + r.ToString() + "' on object '" + this.ToString() + "'. Result = " + ((isRuleBroken == false) ? "Valid" : "Broken"));
                     if (isRuleBroken) {
                         broken.Add(validator);
@@ -169,7 +172,7 @@ namespace BusinessObjects {
         /// </summary>
         ///<remarks>This is a paremeterless version which uses .NET 4.5 CallerMemberName to guess the calling function name.</remarks>
         protected virtual void NotifyChanged([CallerMemberName] string caller = "") {
-            this.NotifyChanged(new string[]{caller});
+            NotifyChanged(new[]{caller});
         }
         /// <summary>
         /// A helper method that raises the PropertyChanged event for a property.
@@ -177,7 +180,7 @@ namespace BusinessObjects {
         /// <param name="propertyNames">The names of the properties that changed.</param>
         /// <remarks>This is a .NET 2.0 compatible version.</remarks>
         protected virtual void NotifyChanged(params string[] propertyNames) {
-            foreach (string name in propertyNames) {
+            foreach (var name in propertyNames) {
                 OnPropertyChanged(new PropertyChangedEventArgs(name));
             }
             OnPropertyChanged(new PropertyChangedEventArgs("IsValid"));
@@ -196,8 +199,8 @@ namespace BusinessObjects {
         /// </summary>
         /// <param name="e">Event arguments.</param>
         protected virtual void OnPropertyChanged(PropertyChangedEventArgs e) {
-            if (this.PropertyChanged != null) {
-                this.PropertyChanged(this, e);
+            if (PropertyChanged != null) {
+                PropertyChanged(this, e);
             }
         }
 
@@ -209,17 +212,22 @@ namespace BusinessObjects {
         {
             // TODO support more data types.
 
-            var props = GetAllDataProperties();
-            int i = 0;
+            var props = GetAllDataProperties().ToList();
+            var i = 0;
             foreach (var prop in props) {
                 var v = prop.GetValue(this, null);
-                Type t = prop.PropertyType;
-                if (t == typeof(string))
-                    if (string.IsNullOrEmpty((string)v))
-                        i++;
-                if (t == typeof(BusinessObject)) {
-                    if (((BusinessObject)v).IsEmpty())
-                        i++;
+                var t = prop.PropertyType;
+                if (v == null) {
+                    i++;
+                    break;
+                }
+                if (t == typeof (string) && string.IsNullOrEmpty((string) v)) {
+                    i++;
+                    break;
+                }
+                if (t == typeof (BusinessObject) && ((BusinessObject) v).IsEmpty()) {
+                    i++;
+                    break;
                 }
             }
             return i == props.Count();
@@ -231,7 +239,7 @@ namespace BusinessObjects {
         /// <remarks>Only properties flagged with the OrderedDataProperty attribute will be returned.</remarks>
         /// <returns>A enumerable list of PropertyInfo instances.</returns>
         protected IEnumerable<PropertyInfo> GetAllDataProperties() {
-            return this.GetType().GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(OrderedDataProperty)));
+            return GetType().GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(OrderedDataProperty)));
         }
 
         #region XML
@@ -247,21 +255,20 @@ namespace BusinessObjects {
         /// <param name="w">Active XML stream writer.</param>
         /// <remarks>Writes only its inner content, not the outer element. Leaves the writer at the same depth.</remarks>
         public  virtual void WriteXml(XmlWriter w) {
-            var props = GetAllDataProperties();
             foreach (var prop in GetAllDataProperties()) {
                 var v = prop.GetValue(this, null);
-                if (v is BusinessObject) {
-                    var child = (BusinessObject)v;
-                    if (!child.IsEmpty()) { 
-                        w.WriteStartElement(child.XmlName);
-                        child.WriteXml(w);
-                        w.WriteEndElement();
-                    }
+                var o = v as BusinessObject;
+                if (o != null) {
+                    var child = o;
+                    if (child.IsEmpty()) continue;
+                    w.WriteStartElement(child.XmlName);
+                    child.WriteXml(w);
+                    w.WriteEndElement();
                 }
                 else {
-                    string value = CleanString((string)v);
+                    var value = CleanString((string)v);
                     if (!string.IsNullOrEmpty(value))
-                        w.WriteElementString(prop.Name.ToString(), value);
+                        w.WriteElementString(prop.Name, value);
                 }
             }
         }
@@ -272,7 +279,7 @@ namespace BusinessObjects {
         /// <param name="r">Active XML stream reader.</param>
         /// <remarks>Reads the outer element. Leaves the reader at the same depth.</remarks>
         public virtual void ReadXml(XmlReader r) {
-            var props = GetAllDataProperties();
+            var props = GetAllDataProperties().ToList();
             r.ReadStartElement();
             while (r.NodeType == XmlNodeType.Element) {
                 var prop = props.FirstOrDefault(n => n.Name.Equals(r.Name));
@@ -283,7 +290,7 @@ namespace BusinessObjects {
                     }
                     else {
                         // TODO handle more types.
-                        prop.SetValue(this, r.ReadElementContentAsString(prop.Name.ToString(), string.Empty), null);
+                        prop.SetValue(this, r.ReadElementContentAsString(prop.Name, string.Empty), null);
                     }
                 }
                 else {
