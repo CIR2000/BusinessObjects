@@ -14,8 +14,8 @@ namespace BusinessObjects.Validators {
             _domain = domain;
         }
 
-        public override bool Validate(DomainObject domainObject) {
-            string v = (string)GetPropertyValue(domainObject);
+        public override bool Validate(BusinessObject businessObject) {
+            string v = (string)GetPropertyValue(businessObject);
             return Array.IndexOf(_domain, v) != -1;
         }
     }

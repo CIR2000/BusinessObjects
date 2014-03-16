@@ -44,7 +44,7 @@
   <ItemGroup>
     <Compile Include="CallerAttributes.cs" />
     <Compile Include="DomainAttributes.cs" />
-    <Compile Include="DomainObject.cs" />
+    <Compile Include="BusinessObject.cs" />
     <Compile Include="Validators\AndCompositeValidator.cs" />
     <Compile Include="Validators\DelegateValidator.cs" />
     <Compile Include="Validators\CountryValidator.cs" />

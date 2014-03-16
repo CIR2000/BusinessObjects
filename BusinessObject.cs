@@ -21,7 +21,7 @@ namespace BusinessObjects {
     /// - BeginEdit()/EndEdit() combination, and rollbacks for cancels (IEditableObject).
     /// </summary>
     [Serializable()]
-    public abstract class DomainObject:  
+    public abstract class BusinessObject:  
         INotifyPropertyChanged,
         IDataErrorInfo {
         protected List<Validator> _rules;
@@ -29,8 +29,8 @@ namespace BusinessObjects {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public DomainObject() {}
-        public DomainObject(XmlReader r) : this() { ReadXml(r); }
+        public BusinessObject() {}
+        public BusinessObject(XmlReader r) : this() { ReadXml(r); }
 
         /// <summary>
         /// Gets a value indicating whether or not this domain object is valid. 
@@ -67,9 +67,9 @@ namespace BusinessObjects {
                 string result = null;
 
                 foreach (var prop in GetAllDataProperties()) {
-                    // Only operate on DomainObject types.
+                    // Only operate on BusinessObject types.
                     if (prop.PropertyType.BaseType.Equals(this.GetType().BaseType)) {
-                        var childDomainObject = (DomainObject)prop.GetValue(this, null);
+                        var childDomainObject = (BusinessObject)prop.GetValue(this, null);
                         if (childDomainObject != null) {
                             string childErrors = childDomainObject.Error;
                             if (childErrors != null) {
@@ -202,7 +202,7 @@ namespace BusinessObjects {
         }
 
         /// <summary>
-        /// Checks wether a DomainObject instance is empty.
+        /// Checks wether a BusinessObject instance is empty.
         /// </summary>
         /// <returns>Returns true if the object is empty; false otherwise.</returns>
         public virtual Boolean IsEmpty()
@@ -217,8 +217,8 @@ namespace BusinessObjects {
                 if (t == typeof(string))
                     if (string.IsNullOrEmpty((string)v))
                         i++;
-                if (t == typeof(DomainObject)) {
-                    if (((DomainObject)v).IsEmpty())
+                if (t == typeof(BusinessObject)) {
+                    if (((BusinessObject)v).IsEmpty())
                         i++;
                 }
             }
@@ -226,7 +226,7 @@ namespace BusinessObjects {
         }
 
         /// <summary>
-        /// Provides a list of actual data properties for the current DomainObject instance.
+        /// Provides a list of actual data properties for the current BusinessObject instance.
         /// </summary>
         /// <remarks>Only properties flagged with the OrderedDataProperty attribute will be returned.</remarks>
         /// <returns>A enumerable list of PropertyInfo instances.</returns>
@@ -237,12 +237,12 @@ namespace BusinessObjects {
         #region XML
 
         /// <summary>
-        /// The name of the XML Element that is bound to store this DomainObject instance.
+        /// The name of the XML Element that is bound to store this BusinessObject instance.
         /// </summary>
         public abstract string XmlName { get; }
 
         /// <summary>
-        /// Serializes the current DomainObject instance to a XML stream.
+        /// Serializes the current BusinessObject instance to a XML stream.
         /// </summary>
         /// <param name="w">Active XML stream writer.</param>
         /// <remarks>Writes only its inner content, not the outer element. Leaves the writer at the same depth.</remarks>
@@ -250,8 +250,8 @@ namespace BusinessObjects {
             var props = GetAllDataProperties();
             foreach (var prop in GetAllDataProperties()) {
                 var v = prop.GetValue(this, null);
-                if (v is DomainObject) {
-                    var child = (DomainObject)v;
+                if (v is BusinessObject) {
+                    var child = (BusinessObject)v;
                     if (!child.IsEmpty()) { 
                         w.WriteStartElement(child.XmlName);
                         child.WriteXml(w);
@@ -267,7 +267,7 @@ namespace BusinessObjects {
         }
 
         /// <summary>
-        /// Deserializes the current DomainObject from a XML stream.
+        /// Deserializes the current BusinessObject from a XML stream.
         /// </summary>
         /// <param name="r">Active XML stream reader.</param>
         /// <remarks>Reads the outer element. Leaves the reader at the same depth.</remarks>
@@ -278,8 +278,8 @@ namespace BusinessObjects {
                 var prop = props.FirstOrDefault(n => n.Name.Equals(r.Name));
                 if (prop != null) {
                     var t = prop.PropertyType;
-                    if (t.BaseType == typeof(DomainObject)) {
-                        ((DomainObject)prop.GetValue(this, null)).ReadXml(r);
+                    if (t.BaseType == typeof(BusinessObject)) {
+                        ((BusinessObject)prop.GetValue(this, null)).ReadXml(r);
                     }
                     else {
                         // TODO handle more types.

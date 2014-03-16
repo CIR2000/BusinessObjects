@@ -40,9 +40,9 @@ namespace BusinessObjects.Validators {
         /// <summary>
         /// Validates that the rule has not been broken.
         /// </summary>
-        /// <param name="domainObject">The domain object being validated.</param>
+        /// <param name="businessObject">The domain object being validated.</param>
         /// <returns>True if the rule has not been broken, or false if it has.</returns>
-        public override bool Validate(DomainObject domainObject) {
+        public override bool Validate(BusinessObject businessObject) {
             return ValidatorDelegate();
         }
     }

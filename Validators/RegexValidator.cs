@@ -16,8 +16,8 @@ namespace BusinessObjects.Validators {
         /// <summary>
         /// Validates that the rule has been followed.
         /// </summary>
-        public override bool Validate(DomainObject domainObject) {
-            string v = (string)GetPropertyValue(domainObject);
+        public override bool Validate(BusinessObject businessObject) {
+            string v = (string)GetPropertyValue(businessObject);
             return string.IsNullOrEmpty(v) || Regex.Match(v, _regex).Success;
         }
     }

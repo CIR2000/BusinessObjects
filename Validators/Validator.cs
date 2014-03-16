@@ -47,7 +47,7 @@ namespace BusinessObjects.Validators {
         /// <summary>
         /// Validates that the rule has been followed.
         /// </summary>
-        public abstract bool Validate(DomainObject domainObject);
+        public abstract bool Validate(BusinessObject businessObject);
 
         /// <summary>
         /// Gets a string representation of this rule.
@@ -67,9 +67,9 @@ namespace BusinessObjects.Validators {
             return this.ToString().GetHashCode();
         }
 
-        protected object GetPropertyValue(DomainObject domainObject) {
-            PropertyInfo pi = domainObject.GetType().GetProperty(this.PropertyName);
-            return pi.GetValue(domainObject, null);
+        protected object GetPropertyValue(BusinessObject businessObject) {
+            PropertyInfo pi = businessObject.GetType().GetProperty(this.PropertyName);
+            return pi.GetValue(businessObject, null);
 
         }
     }

@@ -31,8 +31,8 @@ namespace BusinessObjects.Validators {
         public CountryValidator(string propertyName) : base(propertyName, "Must be a ISO 3166-1 alpha 2 code ([IT], [UK], [...])" ) { }
         public CountryValidator(string propertyName, string description) : base(propertyName, description) { }
 
-        public override bool Validate(DomainObject domainObject) {
-            string v = (string)GetPropertyValue(domainObject);
+        public override bool Validate(BusinessObject businessObject) {
+            string v = (string)GetPropertyValue(businessObject);
             return Array.IndexOf(_domain, v) != -1;
         }
     }

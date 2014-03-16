@@ -19,11 +19,11 @@ namespace BusinessObjects.Validators {
         /// Validates that the rule has been followed.
         /// </summary>
         /// <remarks>Description will only express broken validation rules, or null.</remarks>
-        public override bool Validate(DomainObject domainObject) {
+        public override bool Validate(BusinessObject businessObject) {
             bool _result = true;
             this.Description = null;
             foreach (Validator v in _validators) {
-                if (!v.Validate(domainObject)) {
+                if (!v.Validate(businessObject)) {
                     this.Description += v.Description;
                     _result = false;
                 }

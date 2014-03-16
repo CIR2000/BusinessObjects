@@ -11,12 +11,12 @@ namespace BusinessObjects.Validators {
         /// <summary>
         /// Validates that the rule has been followed.
         /// </summary>
-        public override bool Validate(DomainObject domainObject) {
-            var v = GetPropertyValue(domainObject);
+        public override bool Validate(BusinessObject businessObject) {
+            var v = GetPropertyValue(businessObject);
             if (v is string)
                 return !string.IsNullOrEmpty((string)v);
-            else if (v is DomainObject) {
-                var o = (DomainObject)v;
+            else if (v is BusinessObject) {
+                var o = (BusinessObject)v;
                 return !o.IsEmpty();
             }
             else
