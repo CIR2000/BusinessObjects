@@ -45,6 +45,7 @@
     <Compile Include="CallerAttributes.cs" />
     <Compile Include="DomainAttributes.cs" />
     <Compile Include="BusinessObject.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Validators\AndCompositeValidator.cs" />
     <Compile Include="Validators\DelegateValidator.cs" />
     <Compile Include="Validators\CountryValidator.cs" />
