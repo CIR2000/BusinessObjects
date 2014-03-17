@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 namespace BusinessObjects.Validators {
     public class RegexValidator : Validator {
 
-        private string _regex;
+        private readonly string _regex;
 
         /// <summary>
         /// Constructor.
@@ -17,7 +17,7 @@ namespace BusinessObjects.Validators {
         /// Validates that the rule has been followed.
         /// </summary>
         public override bool Validate(BusinessObject businessObject) {
-            string v = (string)GetPropertyValue(businessObject);
+            var v = (string)GetPropertyValue(businessObject);
             return string.IsNullOrEmpty(v) || Regex.Match(v, _regex).Success;
         }
     }

@@ -3,7 +3,7 @@ using System;
 namespace BusinessObjects.Validators {
     public class DomainValidator : Validator {
 
-        private string[] _domain;
+        private readonly string[] _domain;
 
         /// <summary>
         /// Constructor.
@@ -15,7 +15,7 @@ namespace BusinessObjects.Validators {
         }
 
         public override bool Validate(BusinessObject businessObject) {
-            string v = (string)GetPropertyValue(businessObject);
+            var v = (string)GetPropertyValue(businessObject);
             return Array.IndexOf(_domain, v) != -1;
         }
     }

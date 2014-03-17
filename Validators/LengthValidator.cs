@@ -1,7 +1,8 @@
 namespace BusinessObjects.Validators {
     public class LengthValidator : Validator {
 
-        private int _max, _min;
+        private readonly int _max;
+        private readonly int _min;
 
         /// <summary>
         /// Constructor.
@@ -17,7 +18,7 @@ namespace BusinessObjects.Validators {
         }
 
         public override bool Validate(BusinessObject businessObject) {
-            string v = (string)GetPropertyValue(businessObject);
+            var v = (string)GetPropertyValue(businessObject);
             return string.IsNullOrEmpty(v) || v.Length >= _min && v.Length <= _max;
         }
     }

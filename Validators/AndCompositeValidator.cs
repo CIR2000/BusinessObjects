@@ -1,16 +1,17 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BusinessObjects.Validators {
     public class AndCompositeValidator : Validator {
 
-        private List<Validator> _validators;
+        private readonly List<Validator> _validators;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         public AndCompositeValidator(string propertyName, List<Validator> validators) : base(propertyName, null) {
             _validators = validators;
-            foreach (Validator v in _validators) {
+            foreach (var v in _validators) {
                 v.PropertyName = propertyName;
             }
         }
@@ -20,15 +21,14 @@ namespace BusinessObjects.Validators {
         /// </summary>
         /// <remarks>Description will only express broken validation rules, or null.</remarks>
         public override bool Validate(BusinessObject businessObject) {
-            bool _result = true;
-            this.Description = null;
-            foreach (Validator v in _validators) {
-                if (!v.Validate(businessObject)) {
-                    this.Description += v.Description;
-                    _result = false;
-                }
+            var result = true;
+            Description = null;
+            foreach (var v in _validators.Where(v => !v.Validate(businessObject)))
+            {
+                Description += v.Description;
+                result = false;
             }
-            return _result;
+            return result;
         }
     }
 }

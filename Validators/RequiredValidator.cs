@@ -15,12 +15,11 @@ namespace BusinessObjects.Validators {
             var v = GetPropertyValue(businessObject);
             if (v is string)
                 return !string.IsNullOrEmpty((string)v);
-            else if (v is BusinessObject) {
+            if (v is BusinessObject) {
                 var o = (BusinessObject)v;
                 return !o.IsEmpty();
             }
-            else
-                return v != null;
+            return v != null;
         }
     }
 }

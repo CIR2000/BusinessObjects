@@ -16,26 +16,21 @@ namespace BusinessObjects.Validators {
     /// </summary>
     public class DelegateValidator : 
         Validator {
-        private SimpleValidatorDelegate _validatorDelegate;
-
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="propertyName">The name of the property this rule validates for. This may be blank.</param>
-        /// <param name="brokenDescription">A description message to show if the rule has been broken.</param>
+        /// <param name="description">A description message to show if the rule has been broken.</param>
         /// <param name="ruleDelegate">A delegate that takes no parameters and returns a boolean value, used to validate the rule.</param>
         public DelegateValidator(string propertyName, string description, SimpleValidatorDelegate ruleDelegate):
             base(propertyName, description) {
-            this.ValidatorDelegate = ruleDelegate;
+            ValidatorDelegate = ruleDelegate;
         }
 
         /// <summary>
         /// Gets or sets the delegate used to validate this rule.
         /// </summary>
-        protected virtual SimpleValidatorDelegate ValidatorDelegate {
-            get { return _validatorDelegate; }
-            set { _validatorDelegate = value; }
-        }
+        protected SimpleValidatorDelegate ValidatorDelegate { get; set; }
 
         /// <summary>
         /// Validates that the rule has not been broken.

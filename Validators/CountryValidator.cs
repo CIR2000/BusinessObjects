@@ -6,7 +6,7 @@ namespace BusinessObjects.Validators {
     /// </summary>
     public class CountryValidator : Validator {
 
-        private string[] _domain = {
+        private readonly string[] _domain = {
                                      "AF", "AX", "AL", "DZ", "AS", "AD", "AO", "AI", "AQ", "AG", "AR", "AM", "AW", "AU", "AT", "AZ", 
                                      "BS", "BH", "BD", "BB", "BY", "BE", "BZ", "BJ", "BM", "BT", "BO", "BQ", "BA", "BW", "BV", "BR",
                                      "IO", "BN", "BG", "BF", "BI", "KH", "CM", "CA", "CV", "KY", "CF", "TD", "CL", "CN", "CX", "CC", 
@@ -32,7 +32,7 @@ namespace BusinessObjects.Validators {
         public CountryValidator(string propertyName, string description) : base(propertyName, description) { }
 
         public override bool Validate(BusinessObject businessObject) {
-            string v = (string)GetPropertyValue(businessObject);
+            var v = (string)GetPropertyValue(businessObject);
             return Array.IndexOf(_domain, v) != -1;
         }
     }

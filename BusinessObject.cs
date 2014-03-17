@@ -254,7 +254,7 @@ namespace BusinessObjects {
         /// </summary>
         /// <param name="w">Active XML stream writer.</param>
         /// <remarks>Writes only its inner content, not the outer element. Leaves the writer at the same depth.</remarks>
-        public void WriteXml(XmlWriter w) {
+        public virtual void WriteXml(XmlWriter w) {
             foreach (var prop in GetAllDataProperties()) {
                 var v = prop.GetValue(this, null);
                 var o = v as BusinessObject;
@@ -278,7 +278,7 @@ namespace BusinessObjects {
         /// </summary>
         /// <param name="r">Active XML stream reader.</param>
         /// <remarks>Reads the outer element. Leaves the reader at the same depth.</remarks>
-        public void ReadXml(XmlReader r) {
+        public virtual void ReadXml(XmlReader r) {
             var props = GetAllDataProperties().ToList();
             r.ReadStartElement();
             while (r.NodeType == XmlNodeType.Element) {

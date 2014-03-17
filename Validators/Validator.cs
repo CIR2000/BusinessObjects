@@ -1,5 +1,3 @@
-using System.Reflection;
-
 namespace BusinessObjects.Validators {
     /// <summary>
     /// An abstract class that contains information about a rule as well as a method to validate it.
@@ -10,7 +8,6 @@ namespace BusinessObjects.Validators {
     /// extend this class and provide your own method to validate the rule.
     /// </remarks>
     public abstract class Validator {
-        internal string _description;
         private string _propertyName;
 
         /// <summary>
@@ -24,22 +21,19 @@ namespace BusinessObjects.Validators {
         /// <param name="propertyName">The name of the property the rule is based on. This may be blank if the rule is not for any specific property.</param>
         /// <param name="description">A description of the rule that will be shown if the rule is broken.</param>
         protected Validator(string propertyName, string description) {
-            this.Description = description;
-            this.PropertyName = propertyName;
+            Description = description;
+            PropertyName = propertyName;
         }
 
         /// <summary>
         /// Gets descriptive text about this broken rule.
         /// </summary>
-        public virtual string Description {
-            get { return _description; }
-            internal set { _description = value; }
-        }
+        public string Description { get; internal set; }
 
         /// <summary>
         /// Gets the name of the property the rule belongs to.
         /// </summary>
-        public virtual string PropertyName {
+        public string PropertyName {
             get { return (_propertyName ?? string.Empty).Trim(); }
             internal set { _propertyName = value; }
         }
@@ -54,7 +48,7 @@ namespace BusinessObjects.Validators {
         /// </summary>
         /// <returns>A string containing the description of the rule.</returns>
         public override string ToString() {
-            return this.Description;
+            return Description;
         }
 
         /// <summary>
@@ -64,11 +58,11 @@ namespace BusinessObjects.Validators {
         /// </summary>
         /// <returns>A hash code for the current rule.</returns>
         public override int GetHashCode() {
-            return this.ToString().GetHashCode();
+            return ToString().GetHashCode();
         }
 
         protected object GetPropertyValue(BusinessObject businessObject) {
-            PropertyInfo pi = businessObject.GetType().GetProperty(this.PropertyName);
+            var pi = businessObject.GetType().GetProperty(PropertyName);
             return pi.GetValue(businessObject, null);
 
         }
