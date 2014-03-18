@@ -1,22 +1,24 @@
 using System;
+using System.Security.Cryptography;
 
 namespace BusinessObjects.Validators {
     public class DomainValidator : Validator {
 
-        private readonly string[] _domain;
-
         /// <summary>
         /// Constructor.
         /// </summary>
+        public DomainValidator(string propertyName, string description) : base(propertyName, description) { }
         public DomainValidator(string[] domain) : this(null, domain) { }
-        public DomainValidator(string propertyName, string[] domain) : this(propertyName, "Value not allowed.", domain) { }
+        public DomainValidator(string description, string[] domain) : this(null, description, domain) { }
         public DomainValidator(string propertyName, string description, string[] domain) : base(propertyName, description) {
-            _domain = domain;
+            Domain = domain;
         }
+
+        public string[] Domain { get; set; }
 
         public override bool Validate(BusinessObject businessObject) {
             var v = (string)GetPropertyValue(businessObject);
-            return Array.IndexOf(_domain, v) != -1;
+            return Array.IndexOf(Domain, v) != -1;
         }
     }
 }
