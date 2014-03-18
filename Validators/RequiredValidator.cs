@@ -4,7 +4,7 @@ namespace BusinessObjects.Validators {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public RequiredValidator() : base(null, "Required.") { }
+        public RequiredValidator() : base("Required.") { }
         public RequiredValidator(string propertyName) : base(propertyName, "Required.") { }
         public RequiredValidator(string propertyName, string description) : base(propertyName, description) { }
 

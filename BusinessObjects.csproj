@@ -50,6 +50,7 @@
     <Compile Include="Validators\DelegateValidator.cs" />
     <Compile Include="Validators\CountryValidator.cs" />
     <Compile Include="Validators\DomainValidator.cs" />
+    <Compile Include="Validators\XorRequiredValidator.cs" />
     <Compile Include="Validators\LengthValidator.cs" />
     <Compile Include="Validators\RegexValidator.cs" />
     <Compile Include="Validators\RequiredValidator.cs" />
