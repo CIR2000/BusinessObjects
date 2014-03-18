@@ -28,7 +28,7 @@ namespace BusinessObjects.Validators {
         /// <summary>
         /// Gets descriptive text about this broken rule.
         /// </summary>
-        public string Description { get; internal set; }
+        public string Description { get; set; }
 
         /// <summary>
         /// Gets the name of the property the rule belongs to.
@@ -61,8 +61,14 @@ namespace BusinessObjects.Validators {
             return ToString().GetHashCode();
         }
 
-        protected object GetPropertyValue(BusinessObject businessObject) {
-            var pi = businessObject.GetType().GetProperty(PropertyName);
+        /// <summary>
+        /// Given a BusinessObeject property name, returnes its value.
+        /// </summary>
+        /// <param name="businessObject">A BusinessObject instance.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <returns>A property value.</returns>
+        protected object GetPropertyValue(BusinessObject businessObject, string propertyName) {
+            var pi = businessObject.GetType().GetProperty(propertyName);
             return pi.GetValue(businessObject, null);
 
         }

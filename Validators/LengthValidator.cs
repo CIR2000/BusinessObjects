@@ -18,7 +18,7 @@ namespace BusinessObjects.Validators {
         }
 
         public override bool Validate(BusinessObject businessObject) {
-            var v = (string)GetPropertyValue(businessObject);
+            var v = (string)GetPropertyValue(businessObject, PropertyName);
             return string.IsNullOrEmpty(v) || v.Length >= _min && v.Length <= _max;
         }
     }
