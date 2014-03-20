@@ -68,22 +68,23 @@ namespace BusinessObjects {
             get {
                 string result = null;
 
-                foreach (var prop in GetAllDataProperties()) {
-                    // Only operate on BusinessObject types.
-                    if (prop.PropertyType.BaseType != GetType().BaseType || prop.PropertyType.BaseType == null)
-                        continue;
+                foreach (var prop in GetAllDataProperties())
+                {
+                    var v = prop.GetValue(this, null);
 
-                    var childDomainObject = (BusinessObject) prop.GetValue(this, null);
-                    if (childDomainObject == null) continue;
+                    // Only operate on BusinessObject types.
+                    if (!(v is BusinessObject)) continue;
+
+                    var childDomainObject = (BusinessObject)v;
+                    if (childDomainObject.IsEmpty()) continue;
 
                     var childErrors = childDomainObject.Error;
                     if (childErrors == null) continue;
 
-                    // Inject child object name into error messages. 
                     // TODO Kind of hacky. Perhaps review the Error system (array?). 
+                    // Inject child object name into error messages. 
                     // IDataErrorInfo wants a string as return value however.
-                    var errors = childErrors.Split(new[] {"\r\n"},
-                        StringSplitOptions.RemoveEmptyEntries);
+                    var errors = childErrors.Split(new[] {"\r\n"}, StringSplitOptions.RemoveEmptyEntries);
                     foreach (var error in errors) {
                         result += prop.Name + "." + error + Environment.NewLine;
                     }
@@ -216,19 +217,17 @@ namespace BusinessObjects {
             var i = 0;
             foreach (var prop in props) {
                 var v = prop.GetValue(this, null);
-                var t = prop.PropertyType;
                 if (v == null) {
                     i++;
-                    break;
+                    continue;
                 }
-                if (t == typeof (string) && string.IsNullOrEmpty((string) v)) {
+                if (v is string) {
+                    if (string.IsNullOrEmpty((string) v)) 
+                        i++;
+                    continue;
+                }
+                if (v is BusinessObject && ((BusinessObject) v).IsEmpty()) 
                     i++;
-                    break;
-                }
-                if (t == typeof (BusinessObject) && ((BusinessObject) v).IsEmpty()) {
-                    i++;
-                    break;
-                }
             }
             return i == props.Count();
         }
@@ -285,7 +284,7 @@ namespace BusinessObjects {
                 var prop = props.FirstOrDefault(n => n.Name.Equals(r.Name));
                 if (prop != null) {
                     var t = prop.PropertyType;
-                    if (t.BaseType == typeof(BusinessObject)) {
+                    if (typeof(BusinessObject).IsAssignableFrom(t)) {
                         ((BusinessObject)prop.GetValue(this, null)).ReadXml(r);
                     }
                     else {
