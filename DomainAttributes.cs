@@ -10,7 +10,7 @@ namespace BusinessObjects
     /// (i.e. LastName, but not IsValid). Also, in order for the Read/Write XML methods to work properly, remember
     /// that these properties should be defined in the same order with which they are expected to appear in the XML file. 
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
     public sealed class OrderedDataProperty : DomainObjectAttribute
     {
         private readonly int _order;
