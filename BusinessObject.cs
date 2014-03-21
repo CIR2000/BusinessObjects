@@ -30,7 +30,6 @@ namespace BusinessObjects {
         /// Constructor.
         /// </summary>
         protected BusinessObject() {}
-
         protected BusinessObject(XmlReader r) : this() { ReadXml(r); }
 
         /// <summary>
@@ -256,19 +255,24 @@ namespace BusinessObjects {
         public virtual void WriteXml(XmlWriter w) {
             foreach (var prop in GetAllDataProperties()) {
                 var v = prop.GetValue(this, null);
-                var o = v as BusinessObject;
-                if (o != null) {
-                    var child = o;
+                if (v == null) continue;
+                var child = v as BusinessObject;
+                if (child != null) {
                     if (child.IsEmpty()) continue;
                     w.WriteStartElement(child.XmlName);
                     child.WriteXml(w);
                     w.WriteEndElement();
+                    continue;
                 }
-                else {
-                    var value = CleanString((string)v);
-                    if (!string.IsNullOrEmpty(value))
-                        w.WriteElementString(prop.Name, value);
-                }
+                // TODO handle datetime custom formatting?
+                //if (v is DateTime)
+                //{
+                //    w.WriteElementString(prop.Name, ((DateTime)v).ToString("yyyy-MM-dd"));
+                //    continue;
+                //}
+                w.WriteStartElement(prop.Name); 
+                w.WriteValue(v); 
+                w.WriteEndElement(); 
             }
         }
 
@@ -277,6 +281,7 @@ namespace BusinessObjects {
         /// </summary>
         /// <param name="r">Active XML stream reader.</param>
         /// <remarks>Reads the outer element. Leaves the reader at the same depth.</remarks>
+        // TODO Clear properties before reading from file
         public virtual void ReadXml(XmlReader r) {
             var props = GetAllDataProperties().ToList();
             r.ReadStartElement();
