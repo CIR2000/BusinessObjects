@@ -233,7 +233,7 @@ namespace BusinessObjects {
         }
 
         /// <summary>
-        /// Provides a list of actual data properties for the current BusinessObject instance.
+        /// Provides a list of actual data properties for the current BusinessObject instance, sorted by writing order.
         /// </summary>
         /// <remarks>Only properties flagged with the OrderedDataProperty attribute will be returned.</remarks>
         /// <returns>A enumerable list of PropertyInfo instances.</returns>
