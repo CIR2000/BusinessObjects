@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Xml;
 using BusinessObjects.Validators;
 
@@ -237,7 +238,8 @@ namespace BusinessObjects {
         /// <remarks>Only properties flagged with the OrderedDataProperty attribute will be returned.</remarks>
         /// <returns>A enumerable list of PropertyInfo instances.</returns>
         protected IEnumerable<PropertyInfo> GetAllDataProperties() {
-            return GetType().GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(OrderedDataProperty)));
+            var props = GetType().GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(OrderedDataProperty)));
+            return props.OrderBy(order => ((OrderedDataProperty)Attribute.GetCustomAttribute(order, typeof(OrderedDataProperty))).Order);
         }
 
         #region XML
@@ -253,7 +255,8 @@ namespace BusinessObjects {
         /// <param name="w">Active XML stream writer.</param>
         /// <remarks>Writes only its inner content, not the outer element. Leaves the writer at the same depth.</remarks>
         public virtual void WriteXml(XmlWriter w) {
-            foreach (var prop in GetAllDataProperties()) {
+            foreach (var prop in GetAllDataProperties())
+            {
                 var v = prop.GetValue(this, null);
                 if (v == null) continue;
                 var child = v as BusinessObject;
