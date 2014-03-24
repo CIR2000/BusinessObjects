@@ -250,6 +250,11 @@ namespace BusinessObjects {
         public abstract string XmlName { get; }
 
         /// <summary>
+        /// The optional string format to be applied to DateTime values being serialized to XML.
+        /// </summary>
+        public virtual string XmlDateFormat { get { return null; } }
+
+        /// <summary>
         /// Serializes the current BusinessObject instance to a XML stream.
         /// </summary>
         /// <param name="w">Active XML stream writer.</param>
@@ -268,11 +273,10 @@ namespace BusinessObjects {
                     continue;
                 }
                 // TODO handle datetime custom formatting?
-                //if (v is DateTime)
-                //{
-                //    w.WriteElementString(prop.Name, ((DateTime)v).ToString("yyyy-MM-dd"));
-                //    continue;
-                //}
+                if (v is DateTime && XmlDateFormat != null) {
+                    w.WriteElementString(prop.Name, ((DateTime)v).ToString(XmlDateFormat));
+                    continue;
+                }
                 w.WriteStartElement(prop.Name); 
                 w.WriteValue(v); 
                 w.WriteEndElement(); 
