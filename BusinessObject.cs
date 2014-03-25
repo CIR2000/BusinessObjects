@@ -272,11 +272,11 @@ namespace BusinessObjects {
                     w.WriteEndElement();
                     continue;
                 }
-                // TODO handle datetime custom formatting?
                 if (v is DateTime && XmlDateFormat != null) {
                     w.WriteElementString(prop.Name, ((DateTime)v).ToString(XmlDateFormat));
                     continue;
                 }
+
                 w.WriteStartElement(prop.Name); 
                 w.WriteValue(v); 
                 w.WriteEndElement(); 
@@ -293,23 +293,60 @@ namespace BusinessObjects {
             var props = GetAllDataProperties().ToList();
             r.ReadStartElement();
             while (r.NodeType == XmlNodeType.Element) {
+
                 var prop = props.FirstOrDefault(n => n.Name.Equals(r.Name));
-                if (prop != null) {
-                    var t = prop.PropertyType;
-                    if (typeof(BusinessObject).IsAssignableFrom(t)) {
-                        ((BusinessObject)prop.GetValue(this, null)).ReadXml(r);
-                    }
-                    else {
-                        // TODO handle more types.
-                        prop.SetValue(this, r.ReadElementContentAsString(prop.Name, string.Empty), null);
-                    }
-                }
-                else {
-                    // Ignore unknown element.
+                if (prop == null) {
+                    // ignore unknown property.
                     r.Skip();
+                    continue;
                 }
+
+                var propertyType = prop.PropertyType;
+                var propertyValue = prop.GetValue(this, null);
+
+                // if property type is BusinessObject, let it auto-load from XML.
+                if (typeof(BusinessObject).IsAssignableFrom(propertyType)) {
+                    ((BusinessObject)propertyValue).ReadXml(r);
+                    continue;
+                }
+
+                // if property type is List<T>, assume it's of BusinessObjects and try to fetch them from XML.
+                var tList = typeof (List<>);
+                if (propertyType.IsGenericType && tList.IsAssignableFrom(propertyType.GetGenericTypeDefinition()) ||
+                    propertyType.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == tList)) {
+                    ReadXmlList(propertyValue, prop.Name, r);
+                    continue;
+                }
+
+                // if none of the above then we assume it's a string, or we let a cast happen from string.
+                prop.SetValue(this, r.ReadElementContentAsString(prop.Name, string.Empty), null);
             }
             r.ReadEndElement();
+        }
+
+        /// <summary>
+        /// Reads one or more XML elements into a List of BusinessObjects.
+        /// </summary>
+        /// <param name="propertyValue">Property value. Must be a List of BusinessObject instances.</param>
+        /// <param name="propertyName">Property name.</param>
+        /// <param name="r">Active XML stream reader.</param>
+        private static void ReadXmlList(object propertyValue, string propertyName,  XmlReader r) {
+
+            // retrieve type of list elements.
+            var elementType = propertyValue.GetType().GetGenericArguments().Single();
+
+            // quit if it's not a BusinessObject subclass.
+            if (elementType.BaseType == null) return;
+            if (!typeof(BusinessObject).IsAssignableFrom(elementType)) return;
+
+            // clear the list first.
+            propertyValue.GetType().GetMethod("Clear").Invoke(propertyValue, null);
+
+            while (r.NodeType == XmlNodeType.Element) {
+                var bo = Activator.CreateInstance(elementType);
+                ((BusinessObject)bo).ReadXml(r);
+                propertyValue.GetType().GetMethod("Add").Invoke(propertyValue, new[] { bo });
+            }
         }
         #endregion
     }
