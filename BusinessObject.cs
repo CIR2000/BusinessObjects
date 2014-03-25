@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -262,9 +263,11 @@ namespace BusinessObjects {
         public virtual void WriteXml(XmlWriter w) {
             foreach (var prop in GetAllDataProperties())
             {
-                var v = prop.GetValue(this, null);
-                if (v == null) continue;
-                var child = v as BusinessObject;
+                var propertyValue = prop.GetValue(this, null);
+                if (propertyValue == null) continue;
+
+                // if it's a BusinessObject instance just let it flush it's own data.
+                var child = propertyValue as BusinessObject;
                 if (child != null) {
                     if (child.IsEmpty()) continue;
                     w.WriteStartElement(child.XmlName);
@@ -272,14 +275,44 @@ namespace BusinessObjects {
                     w.WriteEndElement();
                     continue;
                 }
-                if (v is DateTime && XmlDateFormat != null) {
-                    w.WriteElementString(prop.Name, ((DateTime)v).ToString(XmlDateFormat));
+
+                // if property type is List<T>, assume it's of BusinessObjects and try to fetch them all from XML.
+                var tList = typeof (List<>);
+                var propertyType = prop.PropertyType;
+                if (prop.PropertyType.IsGenericType && tList.IsAssignableFrom(propertyType.GetGenericTypeDefinition()) ||
+                    propertyType.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == tList)) {
+                    WriteXmlList(propertyValue, w);
                     continue;
                 }
 
+                // DateTimes deserve special treatment if XmlDateFormat is set.
+                if (propertyValue is DateTime && XmlDateFormat != null) {
+                    w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlDateFormat));
+                    continue;
+                }
+
+                // all else fail so just let the value flush straight to XML.
                 w.WriteStartElement(prop.Name); 
-                w.WriteValue(v); 
+                w.WriteValue(propertyValue); 
                 w.WriteEndElement(); 
+            }
+        }
+
+        /// <summary>
+        /// Deserializes a List of BusinessObject to one or more XML elements.
+        /// </summary>
+        /// <param name="propertyValue">Property value.</param>
+        /// <param name="w">Active XML stream writer.</param>
+        private static void WriteXmlList(object propertyValue, XmlWriter w)
+        {
+            var e = propertyValue.GetType().GetMethod("GetEnumerator").Invoke(propertyValue, null) as IEnumerator;
+
+            while (e != null && e.MoveNext()) {
+                var bo = e.Current as BusinessObject;
+                // ReSharper disable once PossibleNullReferenceException
+                w.WriteStartElement(bo.XmlName);
+                bo.WriteXml(w);
+                w.WriteEndElement();
             }
         }
 
@@ -325,7 +358,7 @@ namespace BusinessObjects {
         }
 
         /// <summary>
-        /// Reads one or more XML elements into a List of BusinessObjects.
+        /// Serializes one or more XML elements into a List of BusinessObjects.
         /// </summary>
         /// <param name="propertyValue">Property value. Must be a List of BusinessObject instances.</param>
         /// <param name="propertyName">Property name.</param>
