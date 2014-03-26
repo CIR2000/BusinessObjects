@@ -374,7 +374,7 @@ namespace BusinessObjects {
             // clear the list first.
             propertyValue.GetType().GetMethod("Clear").Invoke(propertyValue, null);
 
-            while (r.NodeType == XmlNodeType.Element) {
+            while (r.NodeType == XmlNodeType.Element && r.Name == propertyName) {
                 var bo = Activator.CreateInstance(elementType);
                 ((BusinessObject)bo).ReadXml(r);
                 propertyValue.GetType().GetMethod("Add").Invoke(propertyValue, new[] { bo });
