@@ -6,7 +6,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Xml;
 using BusinessObjects.Validators;
 
@@ -251,9 +250,14 @@ namespace BusinessObjects {
         public abstract string XmlName { get; }
 
         /// <summary>
-        /// The optional string format to be applied to DateTime values being serialized to XML.
+        /// Optional string format to be applied to DateTime values being serialized to XML.
         /// </summary>
         public virtual string XmlDateFormat { get { return null; } }
+
+        /// <summary>
+        /// Array of DateTime properties for which the XmlDateFormat property should be ignored.
+        /// </summary>
+        public virtual string[] XmlDateFormatIgnoreProperties { get { return null; } }
 
         /// <summary>
         /// Serializes the current BusinessObject instance to a XML stream.
@@ -287,8 +291,11 @@ namespace BusinessObjects {
 
                 // DateTimes deserve special treatment if XmlDateFormat is set.
                 if (propertyValue is DateTime && XmlDateFormat != null) {
-                    w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlDateFormat));
-                    continue;
+                    if (XmlDateFormatIgnoreProperties == null || Array.IndexOf(XmlDateFormatIgnoreProperties, prop.Name) == -1)
+                    {
+                        w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlDateFormat));
+                        continue;
+                    }
                 }
 
                 // all else fail so just let the value flush straight to XML.
