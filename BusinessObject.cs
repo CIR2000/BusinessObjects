@@ -351,8 +351,7 @@ namespace BusinessObjects {
                     continue;
                 }
 
-                // if none of the above then we assume it's a string, or we let a cast happen from string.
-                prop.SetValue(this, r.ReadElementContentAsString(prop.Name, string.Empty), null);
+                prop.SetValue(this, r.ReadElementContentAs(propertyType, null), null);
             }
             r.ReadEndElement();
         }
