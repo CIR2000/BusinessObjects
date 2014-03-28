@@ -260,6 +260,15 @@ namespace BusinessObjects {
         public virtual string[] XmlDateFormatIgnoreProperties { get { return null; } }
 
         /// <summary>
+        /// Serializes the current BusinessObject instance to a XML file.
+        /// </summary>
+        /// <param name="fileName">Name of the file to write to.</param>
+        public virtual void WriteXml(string fileName) {
+            var settings = new XmlWriterSettings {Indent = true};
+            using (var writer = XmlWriter.Create(fileName, settings)) { WriteXml(writer); }
+        }
+
+        /// <summary>
         /// Serializes the current BusinessObject instance to a XML stream.
         /// </summary>
         /// <param name="w">Active XML stream writer.</param>
@@ -321,6 +330,15 @@ namespace BusinessObjects {
                 bo.WriteXml(w);
                 w.WriteEndElement();
             }
+        }
+
+        /// <summary>
+        /// Deserializes the current BusinessObject from a XML file.
+        /// </summary>
+        /// <param name="fileName">Name of the file to read from.</param>
+        public virtual void ReadXml(string fileName) {
+            var settings = new XmlReaderSettings {IgnoreWhitespace = true};
+            using (var reader = XmlReader.Create(fileName, settings)) { ReadXml(reader); }
         }
 
         /// <summary>
