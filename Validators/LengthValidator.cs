@@ -1,11 +1,14 @@
 namespace BusinessObjects.Validators {
+    /// <summary>
+    /// Validates that a property value matches the allowed length.
+    /// </summary>
     public class LengthValidator : Validator {
 
         private readonly int _max;
         private readonly int _min;
 
         /// <summary>
-        /// Constructor.
+        /// Validates that a property value matches the allowed length.
         /// </summary>
         public LengthValidator(int length) : this(null, length) { }
         public LengthValidator(string propertyName, int length) : this(propertyName, string.Format("Length must be {0}.", length), length) { }

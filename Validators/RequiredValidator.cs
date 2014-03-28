@@ -1,8 +1,11 @@
 namespace BusinessObjects.Validators {
+    /// <summary>
+    /// Validates that a property value is not null or, if of BusinessObject type, not empty.
+    /// </summary>
     public class RequiredValidator : Validator {
 
         /// <summary>
-        /// Constructor.
+        /// Validates that a property value is not null or, if of BusinessObject type, not empty.
         /// </summary>
         public RequiredValidator() : base("Required.") { }
         public RequiredValidator(string propertyName) : base(propertyName, "Required.") { }

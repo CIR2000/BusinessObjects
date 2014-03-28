@@ -1,11 +1,13 @@
 using System;
-using System.Security.Cryptography;
 
 namespace BusinessObjects.Validators {
+    /// <summary>
+    /// Validates that a property value matches one of a list of allowed ones (domain).
+    /// </summary>
     public class DomainValidator : Validator {
 
         /// <summary>
-        /// Constructor.
+        /// Validates that a property value matches one of a list of allowed ones (domain).
         /// </summary>
         public DomainValidator(string propertyName, string description) : base(propertyName, description) { }
         public DomainValidator(string[] domain) : this(null, domain) { }

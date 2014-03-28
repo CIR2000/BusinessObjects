@@ -1,5 +1,3 @@
-using System;
-
 namespace BusinessObjects.Validators {
     /// <summary>
     /// Validates that a property conforms to ISO 3166-1 alpha 2 codes.
@@ -7,13 +5,13 @@ namespace BusinessObjects.Validators {
     public class CountryValidator : DomainValidator {
 
         /// <summary>
-        /// Constructor.
+        /// Validates that a property conforms to ISO 3166-1 alpha 2 codes.
         /// </summary>
         public CountryValidator(string propertyName) : base(propertyName, "Must be a ISO 3166-1 alpha 2 code ([IT], [UK], [...])") { }
 
         public CountryValidator(string propertyName, string description) : base (propertyName, description)
         {
-            Domain = new string[] {
+            Domain = new [] {
                          "AF", "AX", "AL", "DZ", "AS", "AD", "AO", "AI", "AQ", "AG", "AR", "AM", "AW", "AU", "AT", "AZ", 
                          "BS", "BH", "BD", "BB", "BY", "BE", "BZ", "BJ", "BM", "BT", "BO", "BQ", "BA", "BW", "BV", "BR",
                          "IO", "BN", "BG", "BF", "BI", "KH", "CM", "CA", "CV", "KY", "CF", "TD", "CL", "CN", "CX", "CC", 
