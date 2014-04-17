@@ -57,7 +57,7 @@
     <Compile Include="ValidatorTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\BusinessObjects\BusinessObjects.csproj">
+    <ProjectReference Include="..\BusinessObjects\BusinessObjects.csproj">
       <Project>{492ba7d8-269b-4284-80bf-3fc81b60cd91}</Project>
       <Name>BusinessObjects</Name>
     </ProjectReference>
