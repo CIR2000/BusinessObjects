@@ -431,6 +431,21 @@ namespace BusinessObjects {
             var o = obj as BusinessObject;
             return o != null && Equals(o);
         }
+        public static bool operator == (BusinessObject o1, BusinessObject o2)
+        {
+            if ((object)o1 == null || ((object)o2) == null)
+                return Object.Equals(o1, o2);
+
+            return o1.Equals(o2);
+        }
+
+        public static bool operator != (BusinessObject o1, BusinessObject o2)
+        {
+            if (o1 == null || o2 == null)
+                return !Object.Equals(o1, o2);
+
+            return !(o1.Equals(o2));
+        }
         public override int GetHashCode() {
             return this.GetHashCodeFromFields(GetAllDataProperties());
         }
@@ -440,6 +455,12 @@ namespace BusinessObjects {
     {
         private const int SeedPrimeNumber = 691;
         private const int FieldPrimeNumber = 397;
+        /// <summary>
+        /// Allows GetHashCode() method to return a Hash based ont he object properties.
+        /// </summary>
+        /// <param name="obj">The object fro which the hash is being generated.</param>
+        /// <param name="fields">The list of fields to include in the hash generation.</param>
+        /// <returns></returns>
         public static int GetHashCodeFromFields(this object obj, params object[] fields)
         {
             unchecked
