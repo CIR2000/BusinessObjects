@@ -16,6 +16,7 @@ namespace BusinessObjects {
     /// Currently supports:
     /// - XML (de)serialization;
     /// - Exensible and complex validation;
+    /// - IEquatable so you can easily compare complex BusinessObjects togheter.
     /// - Binding (INotififyPropertyChanged and IDataErrorInfo).
     /// 
     /// TODO:
@@ -24,7 +25,7 @@ namespace BusinessObjects {
     [Serializable]
     public abstract class BusinessObject:  
         INotifyPropertyChanged,
-        IDataErrorInfo {
+        IDataErrorInfo, IEquatable<BusinessObject> {
         protected List<Validator> Rules;
 
         /// <summary>
@@ -32,6 +33,7 @@ namespace BusinessObjects {
         /// </summary>
         protected BusinessObject() {}
         protected BusinessObject(XmlReader r) : this() { ReadXml(r); }
+        protected BusinessObject(string fileName) : this() { ReadXml(fileName); }
 
         /// <summary>
         /// Gets a value indicating whether or not this domain object is valid. 
@@ -406,5 +408,48 @@ namespace BusinessObjects {
             }
         }
         #endregion
+
+        #region IEquatable
+        public bool Equals(BusinessObject other)
+        {
+            if (other == null)
+                return false;
+
+            foreach (var prop in GetAllDataProperties()) {
+                var v1 = prop.GetValue(this, null);
+                var v2 = prop.GetValue(other, null);
+                if ( v1 != v2 && !v1.Equals(v2)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        public override bool Equals(object obj) {
+            if (obj == null)
+                return false;
+
+            var o = obj as BusinessObject;
+            return o != null && Equals(o);
+        }
+        public override int GetHashCode() {
+            return this.GetHashCodeFromFields(GetAllDataProperties());
+        }
+        #endregion
+    }
+    public static class ObjectExtensions
+    {
+        private const int SeedPrimeNumber = 691;
+        private const int FieldPrimeNumber = 397;
+        public static int GetHashCodeFromFields(this object obj, params object[] fields)
+        {
+            unchecked
+            { //unchecked to prevent throwing overflow exception
+                var hashCode = SeedPrimeNumber;
+                foreach (var b in fields)
+                    if (b != null)
+                        hashCode *= FieldPrimeNumber + b.GetHashCode();
+                return hashCode;
+            }
+        }
     }
 }
