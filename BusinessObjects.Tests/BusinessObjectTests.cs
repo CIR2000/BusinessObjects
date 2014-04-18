@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Xml;
 using BusinessObjects.Validators;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -34,7 +36,7 @@ namespace BusinessObjects.Tests
             const string propertyName = "RequiredProperty";
 
             // instantiate an invalid object (required property is null).
-            var o = new RulesObject();
+            var o = new ComplexObject();
             AssertInvalidObject(o, propertyName, typeof(Validator));
 
             o.RequiredProperty = "hello";
@@ -56,9 +58,31 @@ namespace BusinessObjects.Tests
             AssertValidObject(o, propertyName);
         }
 
-        private static RulesObject GetMock()
+        [TestMethod]
+        public void SerializeXml()
         {
-            return new RulesObject {RequiredProperty = "hello"};
+            var o = GetMock();
+            var f = Path.GetTempFileName();
+            var settings = new XmlWriterSettings {Indent = true};
+
+            using (var writer = XmlWriter.Create(f, settings))
+            {
+                writer.WriteStartElement("root");
+                o.WriteXml(writer);
+                writer.WriteEndElement();
+            }
+
+            var o1 = new ComplexObject();
+            o1.ReadXml(f);
+            Assert.IsTrue(o.Equals(o1));
+        }
+
+        private static ComplexObject GetMock()
+        {
+            var o = new ComplexObject {RequiredProperty = "hello"};
+            o.SimpleObject.AnotherProperty = "AnotherProperty";
+            o.SimpleObject.SimpleProperty = "SimpleProperty";
+            return o;
         }
 
         private static void AssertValidObject(BusinessObject o)

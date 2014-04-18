@@ -1,6 +1,11 @@
+using System.Xml;
+
 namespace BusinessObjects.Tests
 {
     public class SimpleObject : BusinessObject {
+        public SimpleObject() { }
+        public SimpleObject(XmlReader r) : base(r) { }
+
         public override string XmlName { get { return "SimpleObject"; } }
 
         [OrderedDataProperty]
