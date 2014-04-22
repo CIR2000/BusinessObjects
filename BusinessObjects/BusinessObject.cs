@@ -434,7 +434,7 @@ namespace BusinessObjects {
         public static bool operator == (BusinessObject o1, BusinessObject o2)
         {
             if ((object)o1 == null || ((object)o2) == null)
-                return Object.Equals(o1, o2);
+                return Equals(o1, o2);
 
             return o1.Equals(o2);
         }
@@ -442,7 +442,7 @@ namespace BusinessObjects {
         public static bool operator != (BusinessObject o1, BusinessObject o2)
         {
             if (o1 == null || o2 == null)
-                return !Object.Equals(o1, o2);
+                return !Equals(o1, o2);
 
             return !(o1.Equals(o2));
         }
