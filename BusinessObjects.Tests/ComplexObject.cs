@@ -1,5 +1,6 @@
 using System.Xml;
 using BusinessObjects.Validators;
+using BusinessObjects.PCL;
 
 namespace BusinessObjects.Tests
 {
@@ -12,7 +13,6 @@ namespace BusinessObjects.Tests
             _simple = new SimpleObject();
         }
         public ComplexObject(XmlReader r) { ReadXml(r); }
-        public ComplexObject(string fileName) { ReadXml(fileName); }
 
         public override string XmlName { get { return "ComplexObject"; } }
 

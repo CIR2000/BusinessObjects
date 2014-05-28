@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Xml;
+using BusinessObjects.PCL;
 using BusinessObjects.Validators;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -73,7 +74,9 @@ namespace BusinessObjects.Tests
             }
 
             var o1 = new ComplexObject();
-            o1.ReadXml(f);
+            var s = new XmlReaderSettings {IgnoreWhitespace = true};
+            var r = XmlReader.Create(f, s);
+            o1.ReadXml(r);
             Assert.IsTrue(o.Equals(o1));
         }
 

@@ -55,12 +55,13 @@
     <Compile Include="ComplexObject.cs" />
     <Compile Include="BusinessObjectTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="CountryTests.cs" />
     <Compile Include="ValidatorTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BusinessObjects\BusinessObjects.csproj">
-      <Project>{492ba7d8-269b-4284-80bf-3fc81b60cd91}</Project>
-      <Name>BusinessObjects</Name>
+    <ProjectReference Include="..\BusinessObjects.PCL\BusinessObjects.PCL.csproj">
+      <Project>{06f90b65-7d19-46dc-8336-0f3335be6c76}</Project>
+      <Name>BusinessObjects.PCL</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>
