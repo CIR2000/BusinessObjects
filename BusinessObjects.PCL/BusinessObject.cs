@@ -173,7 +173,7 @@ namespace BusinessObjects.PCL {
         /// <summary>
         /// A helper method that raises the PropertyChanged event for a property.
         /// </summary>
-        ///<remarks>This is a paremeterless version which uses .NET 4.5 CallerMemberName to guess the calling function name.</remarks>
+        ///<remarks>This is a paremeterless version which uses .NET 4.0 CallerMemberName to guess the calling function name.</remarks>
         protected virtual void NotifyChanged([CallerMemberName] string caller = "") {
             NotifyChanged(new[]{caller});
         }
