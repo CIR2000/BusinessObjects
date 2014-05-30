@@ -36,12 +36,8 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>BusinessObjects.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>BusinessObjects.PCL.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
-  <ItemGroup>
-    <!-- A reference to the entire .NET Framework is automatically included -->
-    <None Include="BusinessObjects.snk" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="BusinessObject.cs" />
     <Compile Include="CallerAttributes.cs" />
@@ -57,6 +53,9 @@
     <Compile Include="Validators\RequiredValidator.cs" />
     <Compile Include="Validators\Validator.cs" />
     <Compile Include="Validators\XorRequiredValidator.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="BusinessObjects.PCL.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
