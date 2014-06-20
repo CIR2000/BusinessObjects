@@ -1,3 +1,5 @@
+using BusinessObjects;
+
 namespace BusinessObjects.Validators {
     /// <summary>
     /// Validates that a property value is not null or, if of BusinessObject type, not empty.

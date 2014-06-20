@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -302,17 +303,26 @@ namespace BusinessObjects.PCL {
 
                 // DateTimes deserve special treatment if XmlDateFormat is set.
                 if (propertyValue is DateTime && XmlDateFormat != null) {
-                    if (XmlDateFormatIgnoreProperties == null || Array.IndexOf(XmlDateFormatIgnoreProperties, prop.Name) == -1)
-                    {
+                    if (XmlDateFormatIgnoreProperties == null || Array.IndexOf(XmlDateFormatIgnoreProperties, prop.Name) == -1) {
                         w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlDateFormat));
                         continue;
                     }
+                }
+                if (propertyValue is string) {
+                    if (!string.IsNullOrEmpty(propertyValue.ToString())) {
+                        w.WriteElementString(prop.Name, propertyValue.ToString());
+                    }
+                    continue;
+                }
+                if (propertyValue is decimal) {
+                    w.WriteElementString(prop.Name, ((decimal)propertyValue).ToString("0.00", CultureInfo.InvariantCulture));
+                    continue;
                 }
 
                 // all else fail so just let the value flush straight to XML.
                 w.WriteStartElement(prop.Name); 
                 w.WriteValue(propertyValue); 
-                w.WriteEndElement(); 
+                w.WriteEndElement();
             }
         }
 

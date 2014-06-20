@@ -1,3 +1,5 @@
+using BusinessObjects;
+
 namespace BusinessObjects.Validators {
     /// <summary>
     /// Validates that a property value matches a regex.

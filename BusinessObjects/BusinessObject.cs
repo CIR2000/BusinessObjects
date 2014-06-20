@@ -2,10 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Xml;
 using BusinessObjects.Validators;
 
@@ -22,10 +25,9 @@ namespace BusinessObjects {
     /// TODO:
     /// - BeginEdit()/EndEdit() combination, and rollbacks for cancels (IEditableObject).
     /// </summary>
-    [Serializable]
     public abstract class BusinessObject:  
         INotifyPropertyChanged,
-        IDataErrorInfo, IEquatable<BusinessObject> {
+         IEquatable<BusinessObject> {
         protected List<Validator> Rules;
 
         /// <summary>
@@ -33,7 +35,7 @@ namespace BusinessObjects {
         /// </summary>
         protected BusinessObject() {}
         protected BusinessObject(XmlReader r) : this() { ReadXml(r); }
-        protected BusinessObject(string fileName) : this() { ReadXml(fileName); }
+        //protected BusinessObject(string fileName) : this() { ReadXml(fileName); }
 
         /// <summary>
         /// Gets a value indicating whether or not this domain object is valid. 
@@ -152,8 +154,7 @@ namespace BusinessObjects {
                     }
                 }
             }
-
-            return broken.AsReadOnly();
+            return new ReadOnlyCollection<Validator>(broken);
         }
 
         /// <summary>
@@ -173,7 +174,7 @@ namespace BusinessObjects {
         /// <summary>
         /// A helper method that raises the PropertyChanged event for a property.
         /// </summary>
-        ///<remarks>This is a paremeterless version which uses .NET 4.5 CallerMemberName to guess the calling function name.</remarks>
+        ///<remarks>This is a paremeterless version which uses .NET 4.0 CallerMemberName to guess the calling function name.</remarks>
         protected virtual void NotifyChanged([CallerMemberName] string caller = "") {
             NotifyChanged(new[]{caller});
         }
@@ -267,7 +268,7 @@ namespace BusinessObjects {
         /// <param name="fileName">Name of the file to write to.</param>
         public virtual void WriteXml(string fileName) {
             var settings = new XmlWriterSettings {Indent = true};
-            using (var writer = XmlWriter.Create(fileName, settings)) { WriteXml(writer); }
+            using (var writer = XmlWriter.Create(new System.Text.StringBuilder(fileName), settings)) { WriteXml(writer); }
         }
 
         /// <summary>
@@ -302,17 +303,26 @@ namespace BusinessObjects {
 
                 // DateTimes deserve special treatment if XmlDateFormat is set.
                 if (propertyValue is DateTime && XmlDateFormat != null) {
-                    if (XmlDateFormatIgnoreProperties == null || Array.IndexOf(XmlDateFormatIgnoreProperties, prop.Name) == -1)
-                    {
+                    if (XmlDateFormatIgnoreProperties == null || Array.IndexOf(XmlDateFormatIgnoreProperties, prop.Name) == -1) {
                         w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlDateFormat));
                         continue;
                     }
+                }
+                if (propertyValue is string) {
+                    if (!string.IsNullOrEmpty(propertyValue.ToString())) {
+                        w.WriteElementString(prop.Name, propertyValue.ToString());
+                    }
+                    continue;
+                }
+                if (propertyValue is decimal) {
+                    w.WriteElementString(prop.Name, ((decimal)propertyValue).ToString("0.00", CultureInfo.InvariantCulture));
+                    continue;
                 }
 
                 // all else fail so just let the value flush straight to XML.
                 w.WriteStartElement(prop.Name); 
                 w.WriteValue(propertyValue); 
-                w.WriteEndElement(); 
+                w.WriteEndElement();
             }
         }
 
@@ -338,10 +348,10 @@ namespace BusinessObjects {
         /// Deserializes the current BusinessObject from a XML file.
         /// </summary>
         /// <param name="fileName">Name of the file to read from.</param>
-        public virtual void ReadXml(string fileName) {
-            var settings = new XmlReaderSettings {IgnoreWhitespace = true};
-            using (var reader = XmlReader.Create(fileName, settings)) { ReadXml(reader); }
-        }
+        //public virtual void ReadXml(string fileName) {
+        //    var settings = new XmlReaderSettings {IgnoreWhitespace = true};
+        //    using (var reader = XmlReader.Create(fileName, settings)) { ReadXml(reader); }
+        //}
 
         /// <summary>
         /// Deserializes the current BusinessObject from a XML stream.
