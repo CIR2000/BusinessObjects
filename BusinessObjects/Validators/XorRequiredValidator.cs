@@ -19,7 +19,7 @@ namespace BusinessObjects.Validators
         /// Validates that the rule has been followed.
         /// </summary>
         public override bool Validate(BusinessObject businessObject) {
-            var cnt = Properties.Select(prop => GetPropertyValue(businessObject, prop)).Count(v => v != null);
+            var cnt = Properties.Select(prop => GetPropertyValue(businessObject, prop)).Count(v => v != null && v != "");
             return cnt == 1;
         }
     }
