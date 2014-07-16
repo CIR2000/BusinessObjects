@@ -388,6 +388,10 @@ namespace BusinessObjects {
                     continue;
                 }
 
+                if (typeof(DateTime?).IsAssignableFrom(propertyType)) {
+                    // ReadElementContentAs won't accept a nullable DateTime.
+                    propertyType = typeof(DateTime);
+                }
                 prop.SetValue(this, r.ReadElementContentAs(propertyType, null), null);
             }
             r.ReadEndElement();
