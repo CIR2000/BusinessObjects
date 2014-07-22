@@ -1,6 +1,6 @@
 using System.Xml;
 using BusinessObjects.Validators;
-using BusinessObjects.PCL;
+using BusinessObjects;
 
 namespace BusinessObjects.Tests
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Xml;
-using BusinessObjects.PCL;
+using BusinessObjects;
 using BusinessObjects.Validators;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

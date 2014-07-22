@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace BusinessObjects.PCL
+namespace BusinessObjects
 {
     /// <summary>
     /// Provides a list the ISO 3166-1 world countries.
@@ -33,7 +33,11 @@ namespace BusinessObjects.PCL
         /// <summary>
         /// Extended country name (for use in dropdowns and the likes).
         /// </summary>
-        public string Description { get { return Name + " (" + TwoLetterCode + ")"; } }
+        public string Description { 
+            get { 
+                return (string.IsNullOrEmpty(Name)) ? string.Empty : Name + " (" + TwoLetterCode + ")"; 
+            } 
+        }
 
         private Country(string name, string twoLetterCode, string threeLetterCode, string numericCode)
         {
@@ -77,6 +81,7 @@ namespace BusinessObjects.PCL
         /// </summary>
         public static readonly Country[] List = new[]
         {
+            new Country("", "", null, null),
             new Country("Afghanistan", "AF", "AFG", "004"),
             new Country("Åland Islands", "AX", "ALA", "248"),
             new Country("Albania", "AL", "ALB", "008"),

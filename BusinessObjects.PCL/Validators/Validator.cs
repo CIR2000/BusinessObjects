@@ -1,5 +1,5 @@
 using System.Linq;
-using BusinessObjects.PCL;
+using BusinessObjects;
 
 namespace BusinessObjects.Validators {
     /// <summary>

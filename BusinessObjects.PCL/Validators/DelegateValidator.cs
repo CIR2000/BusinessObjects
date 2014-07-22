@@ -1,4 +1,4 @@
-using BusinessObjects.PCL;
+using BusinessObjects;
 
 namespace BusinessObjects.Validators {
     /// <summary>

@@ -1,5 +1,5 @@
 using System.Xml;
-using BusinessObjects.PCL;
+using BusinessObjects;
 
 namespace BusinessObjects.Tests
 {

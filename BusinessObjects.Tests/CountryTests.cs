@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using BusinessObjects.PCL;
+using BusinessObjects;
 
 namespace BusinessObjects.Tests
 {

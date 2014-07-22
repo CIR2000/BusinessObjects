@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,9 +11,11 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 using BusinessObjects.Validators;
 
-namespace BusinessObjects.PCL {
+namespace BusinessObjects {
     /// <summary>
     /// The class all domain objects must inherit from. 
     ///
@@ -26,14 +29,18 @@ namespace BusinessObjects.PCL {
     /// - BeginEdit()/EndEdit() combination, and rollbacks for cancels (IEditableObject).
     /// </summary>
     public abstract class BusinessObject:  
+        IXmlSerializable,
         INotifyPropertyChanged,
-         IEquatable<BusinessObject> {
+        IEquatable<BusinessObject> {
         protected List<Validator> Rules;
+        protected string XmlName;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        protected BusinessObject() {}
+        protected BusinessObject() {
+            XmlName = this.GetType().Name;
+        }
         protected BusinessObject(XmlReader r) : this() { ReadXml(r); }
         //protected BusinessObject(string fileName) : this() { ReadXml(fileName); }
 
@@ -45,7 +52,6 @@ namespace BusinessObjects.PCL {
                 return Error == null;
             }
         }
-
         /// <summary>
         /// Gets an error message indicating what is wrong with this domain object. The default is a null string.
         /// </summary>
@@ -245,12 +251,31 @@ namespace BusinessObjects.PCL {
             return props.OrderBy(order => ((OrderedDataProperty)Attribute.GetCustomAttribute(order, typeof(OrderedDataProperty))).Order);
         }
 
+        public bool ShouldSerializeIsValid() { return false; }
+        public bool ShouldSerializeError() { return false; }
+        public bool ShouldSerializeIsEmpty() { return false; }
+        public bool ShouldSerializeXmlName() { return false; }
+        public bool ShouldSerializeXmlDateFormat() { return false; }
+        public bool ShouldSerializeXmlDateFormatIgnoreProperties() { return false; }
+
+        public virtual string ToJSON()
+        {
+            var json = JsonConvert.SerializeObject(this, 
+                Formatting.Indented, 
+                new JsonSerializerSettings { 
+                    ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+                    DefaultValueHandling = DefaultValueHandling.Ignore,
+                    //NullValueHandling = NullValueHandling.Ignore,
+                });
+            return json;
+        }
         #region XML
 
+        public XmlSchema GetSchema() { return null; }
         /// <summary>
         /// The name of the XML Element that is bound to store this BusinessObject instance.
         /// </summary>
-        public abstract string XmlName { get; }
+        //public abstract string XmlName { get; }
 
         /// <summary>
         /// Optional string format to be applied to DateTime values being serialized to XML.
@@ -388,6 +413,10 @@ namespace BusinessObjects.PCL {
                     continue;
                 }
 
+                if (typeof(DateTime?).IsAssignableFrom(propertyType)) {
+                    // ReadElementContentAs won't accept a nullable DateTime.
+                    propertyType = typeof(DateTime);
+                }
                 prop.SetValue(this, r.ReadElementContentAs(propertyType, null), null);
             }
             r.ReadEndElement();
@@ -439,7 +468,7 @@ namespace BusinessObjects.PCL {
                 return false;
 
             var o = obj as BusinessObject;
-            return o != null && Equals(o);
+            return o != null && this.GetType().Name == o.GetType().Name && Equals(o);
         }
         public static bool operator == (BusinessObject o1, BusinessObject o2)
         {
