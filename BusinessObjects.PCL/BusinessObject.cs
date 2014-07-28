@@ -33,14 +33,11 @@ namespace BusinessObjects {
         INotifyPropertyChanged,
         IEquatable<BusinessObject> {
         protected List<Validator> Rules;
-        protected string XmlName;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        protected BusinessObject() {
-            XmlName = this.GetType().Name;
-        }
+        protected BusinessObject() { }
         protected BusinessObject(XmlReader r) : this() { ReadXml(r); }
         //protected BusinessObject(string fileName) : this() { ReadXml(fileName); }
 
@@ -254,7 +251,6 @@ namespace BusinessObjects {
         public bool ShouldSerializeIsValid() { return false; }
         public bool ShouldSerializeError() { return false; }
         public bool ShouldSerializeIsEmpty() { return false; }
-        public bool ShouldSerializeXmlName() { return false; }
         public bool ShouldSerializeXmlDateFormat() { return false; }
         public bool ShouldSerializeXmlDateFormatIgnoreProperties() { return false; }
 
@@ -272,10 +268,6 @@ namespace BusinessObjects {
         #region XML
 
         public XmlSchema GetSchema() { return null; }
-        /// <summary>
-        /// The name of the XML Element that is bound to store this BusinessObject instance.
-        /// </summary>
-        //public abstract string XmlName { get; }
 
         /// <summary>
         /// Optional string format to be applied to DateTime values being serialized to XML.
@@ -311,7 +303,7 @@ namespace BusinessObjects {
                 var child = propertyValue as BusinessObject;
                 if (child != null) {
                     if (child.IsEmpty()) continue;
-                    w.WriteStartElement(child.XmlName);
+                    w.WriteStartElement(child.GetType().Name);
                     child.WriteXml(w);
                     w.WriteEndElement();
                     continue;
@@ -363,7 +355,7 @@ namespace BusinessObjects {
             while (e != null && e.MoveNext()) {
                 var bo = e.Current as BusinessObject;
                 // ReSharper disable once PossibleNullReferenceException
-                w.WriteStartElement(bo.XmlName);
+                w.WriteStartElement(bo.GetType().Name);
                 bo.WriteXml(w);
                 w.WriteEndElement();
             }
