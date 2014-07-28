@@ -42,6 +42,7 @@
     <Compile Include="BusinessObject.cs" />
     <Compile Include="CallerAttributes.cs" />
     <Compile Include="Country.cs" />
+    <Compile Include="IgnoreXmlDateFormat.cs" />
     <Compile Include="DomainAttributes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Validators\AndCompositeValidator.cs" />

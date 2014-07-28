@@ -252,7 +252,6 @@ namespace BusinessObjects {
         public bool ShouldSerializeError() { return false; }
         public bool ShouldSerializeIsEmpty() { return false; }
         public bool ShouldSerializeXmlDateFormat() { return false; }
-        public bool ShouldSerializeXmlDateFormatIgnoreProperties() { return false; }
 
         public virtual string ToJSON()
         {
@@ -273,11 +272,6 @@ namespace BusinessObjects {
         /// Optional string format to be applied to DateTime values being serialized to XML.
         /// </summary>
         public virtual string XmlDateFormat { get { return null; } }
-
-        /// <summary>
-        /// Array of DateTime properties for which the XmlDateFormat property should be ignored.
-        /// </summary>
-        public virtual string[] XmlDateFormatIgnoreProperties { get { return null; } }
 
         /// <summary>
         /// Serializes the current BusinessObject instance to a XML file.
@@ -319,11 +313,9 @@ namespace BusinessObjects {
                 }
 
                 // DateTimes deserve special treatment if XmlDateFormat is set.
-                if (propertyValue is DateTime && XmlDateFormat != null) {
-                    if (XmlDateFormatIgnoreProperties == null || Array.IndexOf(XmlDateFormatIgnoreProperties, prop.Name) == -1) {
-                        w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlDateFormat));
-                        continue;
-                    }
+                if (propertyValue is DateTime && XmlDateFormat != null && Attribute.IsDefined(prop, typeof(IgnoreXmlDateFormat))) {
+                    w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlDateFormat));
+                    continue;
                 }
                 if (propertyValue is string) {
                     if (!string.IsNullOrEmpty(propertyValue.ToString())) {
