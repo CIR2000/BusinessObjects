@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="BusinessObject.cs" />
     <Compile Include="CallerAttributes.cs" />
+    <Compile Include="Formatting.cs" />
     <Compile Include="Country.cs" />
     <Compile Include="IgnoreXmlDateFormat.cs" />
     <Compile Include="DomainAttributes.cs" />

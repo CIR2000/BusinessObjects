@@ -253,10 +253,21 @@ namespace BusinessObjects {
         public bool ShouldSerializeIsEmpty() { return false; }
         public bool ShouldSerializeXmlDateFormat() { return false; }
 
-        public virtual string ToJSON()
-        {
+        /// <summary>
+        /// Serializes the instance to JSON
+        /// </summary>
+        /// <returns>A JSON string representing the class instance.</returns>
+        public virtual string ToJSON() {
+            return ToJSON(Formatting.None);
+        }
+        /// <summary>
+        /// Serializes the class to JSON.
+        /// </summary>
+        /// <param name="formatting">JSON formatting options.</param>
+        /// <returns>A JSON string representing the class instance.</returns>
+        public virtual string ToJSON(Formatting formatting) {
             var json = JsonConvert.SerializeObject(this, 
-                Formatting.Indented, 
+                (formatting == Formatting.Indented) ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None,
                 new JsonSerializerSettings { 
                     ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
                     DefaultValueHandling = DefaultValueHandling.Ignore,
