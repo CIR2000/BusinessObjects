@@ -34,13 +34,21 @@ namespace BusinessObjects {
         IEquatable<BusinessObject> {
         protected List<Validator> Rules;
 
+        private XmlOptions _xmlOptions;
+
         /// <summary>
         /// Constructor.
         /// </summary>
-        protected BusinessObject() { }
+        protected BusinessObject() { 
+            _xmlOptions = new XmlOptions();
+        }
         protected BusinessObject(XmlReader r) : this() { ReadXml(r); }
         //protected BusinessObject(string fileName) : this() { ReadXml(fileName); }
 
+        public XmlOptions XmlOptions {
+            get { return _xmlOptions; }
+            set { _xmlOptions = value; }
+        }
         /// <summary>
         /// Gets a value indicating whether or not this domain object is valid. 
         /// </summary>
@@ -258,16 +266,16 @@ namespace BusinessObjects {
         /// </summary>
         /// <returns>A JSON string representing the class instance.</returns>
         public virtual string ToJSON() {
-            return ToJSON(Formatting.None);
+            return ToJSON(JsonOptions.None);
         }
         /// <summary>
         /// Serializes the class to JSON.
         /// </summary>
-        /// <param name="formatting">JSON formatting options.</param>
+        /// <param name="jsonOptions">JSON formatting options.</param>
         /// <returns>A JSON string representing the class instance.</returns>
-        public virtual string ToJSON(Formatting formatting) {
+        public virtual string ToJSON(JsonOptions jsonOptions) {
             var json = JsonConvert.SerializeObject(this, 
-                (formatting == Formatting.Indented) ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None,
+                (jsonOptions == JsonOptions.Indented) ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None,
                 new JsonSerializerSettings { 
                     ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
                     DefaultValueHandling = DefaultValueHandling.Ignore,
@@ -278,11 +286,6 @@ namespace BusinessObjects {
         #region XML
 
         public XmlSchema GetSchema() { return null; }
-
-        /// <summary>
-        /// Optional string format to be applied to DateTime values being serialized to XML.
-        /// </summary>
-        public virtual string XmlDateFormat { get { return null; } }
 
         /// <summary>
         /// Serializes the current BusinessObject instance to a XML file.
@@ -307,7 +310,7 @@ namespace BusinessObjects {
                 // if it's a BusinessObject instance just let it flush it's own data.
                 var child = propertyValue as BusinessObject;
                 if (child != null) {
-                    if (child.IsEmpty()) continue;
+                    if (child.IsEmpty() && XmlOptions.SerializeEmptyBusinessObjects == false) continue;
                     w.WriteStartElement(child.GetType().Name);
                     child.WriteXml(w);
                     w.WriteEndElement();
@@ -323,19 +326,18 @@ namespace BusinessObjects {
                     continue;
                 }
 
-                // DateTimes deserve special treatment if XmlDateFormat is set.
-                if (propertyValue is DateTime && XmlDateFormat != null && Attribute.IsDefined(prop, typeof(IgnoreXmlDateFormat))) {
-                    w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlDateFormat));
-                    continue;
-                }
                 if (propertyValue is string) {
-                    if (!string.IsNullOrEmpty(propertyValue.ToString())) {
+                    if (!string.IsNullOrEmpty(propertyValue.ToString()) || XmlOptions.SerializeEmptyOrNullStrings) {
                         w.WriteElementString(prop.Name, propertyValue.ToString());
                     }
                     continue;
                 }
-                if (propertyValue is decimal) {
-                    w.WriteElementString(prop.Name, ((decimal)propertyValue).ToString("0.00", CultureInfo.InvariantCulture));
+                if (propertyValue is DateTime && this.XmlOptions.DateTimeFormat != null && Attribute.IsDefined(prop, typeof(IgnoreXmlDateFormat))) {
+                    w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlOptions.DateTimeFormat));
+                    continue;
+                }
+                if (propertyValue is decimal && XmlOptions.DecimalFormat != null) {
+                    w.WriteElementString(prop.Name, ((decimal)propertyValue).ToString(XmlOptions.DecimalFormat, CultureInfo.InvariantCulture));
                     continue;
                 }
 
