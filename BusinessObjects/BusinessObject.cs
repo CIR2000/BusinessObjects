@@ -332,7 +332,7 @@ namespace BusinessObjects {
                     }
                     continue;
                 }
-                if (propertyValue is DateTime && this.XmlOptions.DateTimeFormat != null && Attribute.IsDefined(prop, typeof(IgnoreXmlDateFormat))) {
+                if (propertyValue is DateTime && this.XmlOptions.DateTimeFormat != null && !Attribute.IsDefined(prop, typeof(IgnoreXmlDateFormat))) {
                     w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlOptions.DateTimeFormat));
                     continue;
                 }
