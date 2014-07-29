@@ -1,13 +1,10 @@
+using BusinessObjects.Validators;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using BusinessObjects.Validators;
 using System.Runtime.CompilerServices;
 
 namespace BusinessObjects {
@@ -26,11 +23,6 @@ namespace BusinessObjects {
         INotifyPropertyChanged,
         IEquatable<BusinessObjectBase> {
         protected List<Validator> Rules;
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        protected BusinessObjectBase() { }
 
         /// <summary>
         /// Gets a value indicating whether or not this domain object is valid. 
@@ -223,8 +215,9 @@ namespace BusinessObjects {
                         i++;
                     continue;
                 }
-                if (v is BusinessObjectBase && ((BusinessObjectBase) v).IsEmpty()) 
+                if (v is BusinessObjectBase && ((BusinessObjectBase)v).IsEmpty()) { 
                     i++;
+                }
             }
             return i == props.Count();
         }
@@ -260,7 +253,7 @@ namespace BusinessObjects {
                 return false;
 
             var o = obj as BusinessObjectBase;
-            return o != null && this.GetType().Name == o.GetType().Name && Equals(o);
+            return o != null && GetType().Name == o.GetType().Name && Equals(o);
         }
         public static bool operator == (BusinessObjectBase o1, BusinessObjectBase o2)
         {

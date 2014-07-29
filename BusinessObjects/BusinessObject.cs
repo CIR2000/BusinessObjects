@@ -1,23 +1,12 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
-using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using BusinessObjects.Validators;
-using System.Runtime.CompilerServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using Newtonsoft.Json;
 
 namespace BusinessObjects
 {
@@ -28,20 +17,16 @@ namespace BusinessObjects
     public class BusinessObject : 
         BusinessObjectBase,
         IXmlSerializable {
-        private XmlOptions _xmlOptions;
-
         /// <summary>
         /// Constructor.
         /// </summary>
-        protected BusinessObject() : base() { 
-            _xmlOptions = new XmlOptions();
+        protected BusinessObject() { 
+            XmlOptions = new XmlOptions();
         }
         protected BusinessObject(XmlReader r) : this() { ReadXml(r); }
 
-        public XmlOptions XmlOptions {
-            get { return _xmlOptions; }
-            set { _xmlOptions = value; }
-        }
+        public XmlOptions XmlOptions { get; set; }
+
         public bool ShouldSerializeIsValid() { return false; }
         public bool ShouldSerializeError() { return false; }
         public bool ShouldSerializeIsEmpty() { return false; }
@@ -51,17 +36,17 @@ namespace BusinessObjects
         /// Serializes the instance to JSON
         /// </summary>
         /// <returns>A JSON string representing the class instance.</returns>
-        public virtual string ToJSON() {
-            return ToJSON(JsonOptions.None);
+        public virtual string ToJson() {
+            return ToJson(JsonOptions.None);
         }
         /// <summary>
         /// Serializes the class to JSON.
         /// </summary>
         /// <param name="jsonOptions">JSON formatting options.</param>
         /// <returns>A JSON string representing the class instance.</returns>
-        public virtual string ToJSON(JsonOptions jsonOptions) {
+        public virtual string ToJson(JsonOptions jsonOptions) {
             var json = JsonConvert.SerializeObject(this, 
-                (jsonOptions == JsonOptions.Indented) ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None,
+                (jsonOptions == JsonOptions.Indented) ? Formatting.Indented : Formatting.None,
                 new JsonSerializerSettings { 
                     ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
                     DefaultValueHandling = DefaultValueHandling.Ignore,
@@ -118,7 +103,7 @@ namespace BusinessObjects
                     }
                     continue;
                 }
-                if (propertyValue is DateTime && this.XmlOptions.DateTimeFormat != null && !Attribute.IsDefined(prop, typeof(IgnoreXmlDateFormat))) {
+                if (propertyValue is DateTime && XmlOptions.DateTimeFormat != null && !Attribute.IsDefined(prop, typeof(IgnoreXmlDateFormat))) {
                     w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlOptions.DateTimeFormat));
                     continue;
                 }
@@ -151,15 +136,6 @@ namespace BusinessObjects
                 w.WriteEndElement();
             }
         }
-
-        /// <summary>
-        /// Deserializes the current BusinessObject from a XML file.
-        /// </summary>
-        /// <param name="fileName">Name of the file to read from.</param>
-        //public virtual void ReadXml(string fileName) {
-        //    var settings = new XmlReaderSettings {IgnoreWhitespace = true};
-        //    using (var reader = XmlReader.Create(fileName, settings)) { ReadXml(reader); }
-        //}
 
         /// <summary>
         /// Deserializes the current BusinessObject from a XML stream.
@@ -200,6 +176,7 @@ namespace BusinessObjects
                     // ReadElementContentAs won't accept a nullable DateTime.
                     propertyType = typeof(DateTime);
                 }
+                // ReSharper disable once AssignNullToNotNullAttribute
                 prop.SetValue(this, r.ReadElementContentAs(propertyType, null), null);
             }
             r.ReadEndElement();

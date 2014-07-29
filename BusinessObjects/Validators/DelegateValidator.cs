@@ -1,5 +1,3 @@
-using BusinessObjects;
-
 namespace BusinessObjects.Validators {
     /// <summary>
     /// A simple type of domain object rule that uses a delegate for validation. 

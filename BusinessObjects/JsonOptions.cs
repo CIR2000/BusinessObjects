@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BusinessObjects {
+﻿namespace BusinessObjects {
     /// <summary>
     /// Provides formatting optons for JSON output.
     /// </summary>
