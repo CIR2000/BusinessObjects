@@ -24,7 +24,7 @@ namespace BusinessObjects.Validators {
         /// Validates that the rule has been followed.
         /// </summary>
         /// <remarks>Description will only express broken validation rules, or null.</remarks>
-        public override bool Validate(BusinessObject businessObject) { var result = true;
+        public override bool Validate(BusinessObjectBase businessObject) { var result = true;
             Description = null;
             foreach (var v in _validators.Where(v => !v.Validate(businessObject)))
             {

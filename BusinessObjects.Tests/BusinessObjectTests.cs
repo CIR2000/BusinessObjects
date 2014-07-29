@@ -88,38 +88,38 @@ namespace BusinessObjects.Tests
             return o;
         }
 
-        private static void AssertValidObject(BusinessObject o)
+        private static void AssertValidObject(BusinessObjectBase o)
         {
             Assert.IsTrue(o.IsValid);
             Assert.IsNull(o.Error);
             Assert.AreEqual(o.GetBrokenRules().Count, 0);
         }
 
-        private static void AssertValidObject(BusinessObject o, string property)
+        private static void AssertValidObject(BusinessObjectBase o, string property)
         {
             AssertValidObject(o);
             AssertValidProperty(o, property);
         }
 
-        private static void AssertValidProperty(BusinessObject o, string property)
+        private static void AssertValidProperty(BusinessObjectBase o, string property)
         {
             Assert.AreEqual(o.GetBrokenRules(property).Count, 0);
             Assert.IsNull(o[property]);
         }
 
-        private static void AssertInvalidObject(BusinessObject o)
+        private static void AssertInvalidObject(BusinessObjectBase o)
         {
             Assert.IsFalse(o.IsValid);
             Assert.AreEqual(o.GetBrokenRules().Count, 1);
         }
 
-        private static void AssertInvalidObject(BusinessObject o, string property, Type expectedValidatorType)
+        private static void AssertInvalidObject(BusinessObjectBase o, string property, Type expectedValidatorType)
         {
             AssertInvalidObject(o);
             AssertInvalidProperty(o, property, expectedValidatorType);
         }
 
-        private static void AssertInvalidProperty(BusinessObject o, string property, Type expectedValidatorType)
+        private static void AssertInvalidProperty(BusinessObjectBase o, string property, Type expectedValidatorType)
         {
             Assert.AreEqual(o.GetBrokenRules(property).Count, 1);
             Assert.IsNotNull(o[property]);

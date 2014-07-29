@@ -22,7 +22,7 @@ namespace BusinessObjects.Validators {
             _min = min;
         }
 
-        public override bool Validate(BusinessObject businessObject) {
+        public override bool Validate(BusinessObjectBase businessObject) {
             var v = (string)GetPropertyValue(businessObject, PropertyName);
             return string.IsNullOrEmpty(v) || v.Length >= _min && v.Length <= _max;
         }

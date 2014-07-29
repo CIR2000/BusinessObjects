@@ -16,12 +16,12 @@ namespace BusinessObjects.Validators {
         /// <summary>
         /// Validates that the rule has been followed.
         /// </summary>
-        public override bool Validate(BusinessObject businessObject) {
+        public override bool Validate(BusinessObjectBase businessObject) {
             var v = GetPropertyValue(businessObject, PropertyName);
             if (v is string)
                 return !string.IsNullOrEmpty((string)v);
-            if (v is BusinessObject) {
-                var o = (BusinessObject)v;
+            if (v is BusinessObjectBase) {
+                var o = (BusinessObjectBase)v;
                 return !o.IsEmpty();
             }
             return v != null;

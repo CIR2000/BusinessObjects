@@ -8,8 +8,8 @@
     <ProjectGuid>{06F90B65-7D19-46DC-8336-0F3335BE6C76}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BusinessObjects.PCL</RootNamespace>
-    <AssemblyName>BusinessObjects.PCL</AssemblyName>
+    <RootNamespace>BusinessObjects</RootNamespace>
+    <AssemblyName>BusinessObjects</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile136</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -39,6 +39,7 @@
     <AssemblyOriginatorKeyFile>BusinessObjects.PCL.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="BusinessObjectBase.cs" />
     <Compile Include="BusinessObject.cs" />
     <Compile Include="CallerAttributes.cs" />
     <Compile Include="JsonOptions.cs" />
