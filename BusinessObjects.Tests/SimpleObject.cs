@@ -7,8 +7,6 @@ namespace BusinessObjects.Tests
         public SimpleObject() { }
         public SimpleObject(XmlReader r) : base(r) { }
 
-        public override string XmlName { get { return "SimpleObject"; } }
-
         [OrderedDataProperty]
         public string SimpleProperty { get; set; }
 

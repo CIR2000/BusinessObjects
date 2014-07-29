@@ -14,8 +14,6 @@ namespace BusinessObjects.Tests
         }
         public ComplexObject(XmlReader r) { ReadXml(r); }
 
-        public override string XmlName { get { return "ComplexObject"; } }
-
         protected override System.Collections.Generic.List<Validator> CreateRules()
         {
             var rules = base.CreateRules();
