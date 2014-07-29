@@ -59,9 +59,9 @@
     <Compile Include="ValidatorTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BusinessObjects.PCL\BusinessObjects.PCL.csproj">
+    <ProjectReference Include="..\BusinessObjects\BusinessObjects.csproj">
       <Project>{06f90b65-7d19-46dc-8336-0f3335be6c76}</Project>
-      <Name>BusinessObjects.PCL</Name>
+      <Name>BusinessObjects</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

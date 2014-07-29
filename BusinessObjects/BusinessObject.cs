@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,6 +11,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 using BusinessObjects.Validators;
 
 namespace BusinessObjects {
@@ -26,17 +29,26 @@ namespace BusinessObjects {
     /// - BeginEdit()/EndEdit() combination, and rollbacks for cancels (IEditableObject).
     /// </summary>
     public abstract class BusinessObject:  
+        IXmlSerializable,
         INotifyPropertyChanged,
-         IEquatable<BusinessObject> {
+        IEquatable<BusinessObject> {
         protected List<Validator> Rules;
+
+        private XmlOptions _xmlOptions;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        protected BusinessObject() {}
+        protected BusinessObject() { 
+            _xmlOptions = new XmlOptions();
+        }
         protected BusinessObject(XmlReader r) : this() { ReadXml(r); }
         //protected BusinessObject(string fileName) : this() { ReadXml(fileName); }
 
+        public XmlOptions XmlOptions {
+            get { return _xmlOptions; }
+            set { _xmlOptions = value; }
+        }
         /// <summary>
         /// Gets a value indicating whether or not this domain object is valid. 
         /// </summary>
@@ -45,7 +57,6 @@ namespace BusinessObjects {
                 return Error == null;
             }
         }
-
         /// <summary>
         /// Gets an error message indicating what is wrong with this domain object. The default is a null string.
         /// </summary>
@@ -245,22 +256,36 @@ namespace BusinessObjects {
             return props.OrderBy(order => ((OrderedDataProperty)Attribute.GetCustomAttribute(order, typeof(OrderedDataProperty))).Order);
         }
 
+        public bool ShouldSerializeIsValid() { return false; }
+        public bool ShouldSerializeError() { return false; }
+        public bool ShouldSerializeIsEmpty() { return false; }
+        public bool ShouldSerializeXmlDateFormat() { return false; }
+
+        /// <summary>
+        /// Serializes the instance to JSON
+        /// </summary>
+        /// <returns>A JSON string representing the class instance.</returns>
+        public virtual string ToJSON() {
+            return ToJSON(JsonOptions.None);
+        }
+        /// <summary>
+        /// Serializes the class to JSON.
+        /// </summary>
+        /// <param name="jsonOptions">JSON formatting options.</param>
+        /// <returns>A JSON string representing the class instance.</returns>
+        public virtual string ToJSON(JsonOptions jsonOptions) {
+            var json = JsonConvert.SerializeObject(this, 
+                (jsonOptions == JsonOptions.Indented) ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None,
+                new JsonSerializerSettings { 
+                    ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+                    DefaultValueHandling = DefaultValueHandling.Ignore,
+                    //NullValueHandling = NullValueHandling.Ignore,
+                });
+            return json;
+        }
         #region XML
 
-        /// <summary>
-        /// The name of the XML Element that is bound to store this BusinessObject instance.
-        /// </summary>
-        public abstract string XmlName { get; }
-
-        /// <summary>
-        /// Optional string format to be applied to DateTime values being serialized to XML.
-        /// </summary>
-        public virtual string XmlDateFormat { get { return null; } }
-
-        /// <summary>
-        /// Array of DateTime properties for which the XmlDateFormat property should be ignored.
-        /// </summary>
-        public virtual string[] XmlDateFormatIgnoreProperties { get { return null; } }
+        public XmlSchema GetSchema() { return null; }
 
         /// <summary>
         /// Serializes the current BusinessObject instance to a XML file.
@@ -285,8 +310,8 @@ namespace BusinessObjects {
                 // if it's a BusinessObject instance just let it flush it's own data.
                 var child = propertyValue as BusinessObject;
                 if (child != null) {
-                    if (child.IsEmpty()) continue;
-                    w.WriteStartElement(child.XmlName);
+                    if (child.IsEmpty() && XmlOptions.SerializeEmptyBusinessObjects == false) continue;
+                    w.WriteStartElement(child.GetType().Name);
                     child.WriteXml(w);
                     w.WriteEndElement();
                     continue;
@@ -301,21 +326,18 @@ namespace BusinessObjects {
                     continue;
                 }
 
-                // DateTimes deserve special treatment if XmlDateFormat is set.
-                if (propertyValue is DateTime && XmlDateFormat != null) {
-                    if (XmlDateFormatIgnoreProperties == null || Array.IndexOf(XmlDateFormatIgnoreProperties, prop.Name) == -1) {
-                        w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlDateFormat));
-                        continue;
-                    }
-                }
                 if (propertyValue is string) {
-                    if (!string.IsNullOrEmpty(propertyValue.ToString())) {
+                    if (!string.IsNullOrEmpty(propertyValue.ToString()) || XmlOptions.SerializeEmptyOrNullStrings) {
                         w.WriteElementString(prop.Name, propertyValue.ToString());
                     }
                     continue;
                 }
-                if (propertyValue is decimal) {
-                    w.WriteElementString(prop.Name, ((decimal)propertyValue).ToString("0.00", CultureInfo.InvariantCulture));
+                if (propertyValue is DateTime && this.XmlOptions.DateTimeFormat != null && Attribute.IsDefined(prop, typeof(IgnoreXmlDateFormat))) {
+                    w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlOptions.DateTimeFormat));
+                    continue;
+                }
+                if (propertyValue is decimal && XmlOptions.DecimalFormat != null) {
+                    w.WriteElementString(prop.Name, ((decimal)propertyValue).ToString(XmlOptions.DecimalFormat, CultureInfo.InvariantCulture));
                     continue;
                 }
 
@@ -338,7 +360,7 @@ namespace BusinessObjects {
             while (e != null && e.MoveNext()) {
                 var bo = e.Current as BusinessObject;
                 // ReSharper disable once PossibleNullReferenceException
-                w.WriteStartElement(bo.XmlName);
+                w.WriteStartElement(bo.GetType().Name);
                 bo.WriteXml(w);
                 w.WriteEndElement();
             }
@@ -443,7 +465,7 @@ namespace BusinessObjects {
                 return false;
 
             var o = obj as BusinessObject;
-            return o != null && Equals(o);
+            return o != null && this.GetType().Name == o.GetType().Name && Equals(o);
         }
         public static bool operator == (BusinessObject o1, BusinessObject o2)
         {
