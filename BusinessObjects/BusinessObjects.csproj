@@ -5,7 +5,7 @@
     <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{492BA7D8-269B-4284-80BF-3FC81B60CD91}</ProjectGuid>
+    <ProjectGuid>{06F90B65-7D19-46DC-8336-0F3335BE6C76}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BusinessObjects</RootNamespace>
@@ -45,7 +45,7 @@
     <Compile Include="JsonOptions.cs" />
     <Compile Include="Country.cs" />
     <Compile Include="IgnoreXmlDateFormat.cs" />
-    <Compile Include="DomainAttributes.cs" />
+    <Compile Include="DataPropertyAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Validators\AndCompositeValidator.cs" />
     <Compile Include="Validators\CountryValidator.cs" />

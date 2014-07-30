@@ -228,8 +228,8 @@ namespace BusinessObjects {
         /// <remarks>Only properties flagged with the OrderedDataProperty attribute will be returned.</remarks>
         /// <returns>A enumerable list of PropertyInfo instances.</returns>
         protected IEnumerable<PropertyInfo> GetAllDataProperties() {
-            var props = GetType().GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(OrderedDataProperty)));
-            return props.OrderBy(order => ((OrderedDataProperty)Attribute.GetCustomAttribute(order, typeof(OrderedDataProperty))).Order);
+            var props = GetType().GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(DataProperty)));
+            return props.OrderBy(order => ((DataProperty)Attribute.GetCustomAttribute(order, typeof(DataProperty))).Order);
         }
 
 
