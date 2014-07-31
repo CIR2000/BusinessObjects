@@ -51,9 +51,11 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="BaseClass.cs" />
+    <Compile Include="BusinessObjectTests.cs" />
     <Compile Include="SimpleObject.cs" />
     <Compile Include="ComplexObject.cs" />
-    <Compile Include="BusinessObjectTests.cs" />
+    <Compile Include="BusinessObjectBaseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CountryTests.cs" />
     <Compile Include="ValidatorTests.cs" />

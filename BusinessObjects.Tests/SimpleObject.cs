@@ -1,5 +1,4 @@
 using System.Xml;
-using BusinessObjects;
 
 namespace BusinessObjects.Tests
 {

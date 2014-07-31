@@ -1,6 +1,4 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using BusinessObjects;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BusinessObjects.Tests
 {

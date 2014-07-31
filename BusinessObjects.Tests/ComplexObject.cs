@@ -1,6 +1,5 @@
-using System.Xml;
 using BusinessObjects.Validators;
-using BusinessObjects;
+using System.Xml;
 
 namespace BusinessObjects.Tests
 {
