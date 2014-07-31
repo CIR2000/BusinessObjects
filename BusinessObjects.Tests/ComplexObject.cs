@@ -21,13 +21,13 @@ namespace BusinessObjects.Tests
             rules.Add(new RequiredValidator("RequiredProperty"));
             return rules;
         }
-        [OrderedDataProperty]
+        [DataProperty]
         public string LengthProperty { get; set; }
 
-        [OrderedDataProperty]
+        [DataProperty]
         public string RequiredProperty { get; set; }
 
-        [OrderedDataProperty]
+        [DataProperty]
         public SimpleObject SimpleObject { get { return _simple; } }
     }
 }
