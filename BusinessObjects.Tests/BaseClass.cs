@@ -45,7 +45,9 @@ namespace BusinessObjects.Tests
         protected static void AssertInvalidObject(BusinessObjectBase o, string property, Type expectedValidatorType)
         {
             AssertInvalidObject(o);
-            AssertInvalidProperty(o, property, expectedValidatorType);
+            if (property != null) { 
+                AssertInvalidProperty(o, property, expectedValidatorType);
+            }
         }
 
         protected static void AssertInvalidProperty(BusinessObjectBase o, string property, Type expectedValidatorType)

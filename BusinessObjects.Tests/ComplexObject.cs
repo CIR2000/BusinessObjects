@@ -10,6 +10,9 @@ namespace BusinessObjects.Tests
         public ComplexObject()
         {
             _simple = new SimpleObject();
+            DelegateProperty = "dummy";
+            FirstProperty = "first";
+            AndProperty = "And";
         }
         public ComplexObject(XmlReader r) { ReadXml(r); }
 
@@ -18,6 +21,17 @@ namespace BusinessObjects.Tests
             var rules = base.CreateRules();
             rules.Add(new LengthValidator("LengthProperty", 1, 5));
             rules.Add(new RequiredValidator("RequiredProperty"));
+            rules.Add(new CountryValidator("CountryProperty"));
+            rules.Add(new DelegateValidator("DelegateProperty", "This is a fail", () => (DelegateProperty == "dummy")));
+            rules.Add(new RegexValidator("RegexProperty", "dummy"));
+            rules.Add(new XorRequiredValidator(new[] {"FirstProperty", "SecondProperty"}, "This is a fail"));
+            rules.Add(
+                new AndCompositeValidator(
+                    "AndProperty",
+                    new System.Collections.Generic.List<Validator> {
+                        new LengthValidator(3),
+                        new DelegateValidator(null, "fail", () => (AndProperty == "And"))
+                    }));
             return rules;
         }
         [DataProperty]
@@ -25,6 +39,25 @@ namespace BusinessObjects.Tests
 
         [DataProperty]
         public string RequiredProperty { get; set; }
+
+        [DataProperty]
+        public string CountryProperty { get; set; }
+
+        [DataProperty]
+        public string DelegateProperty { get; set; }
+
+        [DataProperty]
+        public string RegexProperty { get; set; }
+
+        [DataProperty]
+        public string FirstProperty { get; set; }
+
+        [DataProperty]
+        public string SecondProperty { get; set; }
+
+        [DataProperty]
+        public string AndProperty { get; set; }
+
 
         [DataProperty]
         public SimpleObject SimpleObject { get { return _simple; } }
