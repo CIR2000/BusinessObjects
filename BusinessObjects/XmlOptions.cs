@@ -15,12 +15,16 @@
         /// </summary>
         public string DecimalFormat { get; set;}
         /// <summary>
-        /// Whether empty or null strings should be serialized or not. Defaults to <value>false</value>.
+        /// Whether null properties should be serialized or not. Defaults to <value>false</value>.
         /// </summary>
-        public bool SerializeEmptyOrNullStrings { get; set; }
+        public bool SerializeNullValues { get; set; }
         /// <summary>
         /// Whether empty BusinessObject children should be serialized or not. Defaults to <value>false</value>.
         /// </summary>
         public bool SerializeEmptyBusinessObjects { get; set; }
+        /// <summary>
+        /// Wether emty strings should be serialized or not. Defaults to <value>false</value>.
+        /// </summary>
+        public bool SerializeEmptyStrings { get; set; }
     }
 }

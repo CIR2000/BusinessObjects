@@ -56,7 +56,51 @@ namespace BusinessObjects.Tests
             
         }
 
-        private static XmlWriter GetXmlWriter(string fileName)
+        [TestMethod]
+        public void XmlSerializeNullValues()
+        {
+            var o = GetMock();
+            o.FirstProperty = null;
+            o.XmlOptions.SerializeNullValues = true;
+            
+
+            var fileName = WriteXml(o);
+
+            var s = new XmlReaderSettings {IgnoreWhitespace = true};
+            using (var r = XmlReader.Create(fileName, s))
+            {
+                r.MoveToContent();
+                r.ReadStartElement("root");
+
+                Assert.IsTrue(r.IsEmptyElement);
+                Assert.IsTrue(r.ReadElementContentAsString("FirstProperty", string.Empty) == "");
+            }
+        }
+
+
+        [TestMethod]
+        public void XmlSerializeEmptyStrings()
+        {
+            var o = GetMock();
+            o.FirstProperty = string.Empty;
+            o.XmlOptions.SerializeEmptyStrings = true;
+            
+
+            var fileName = WriteXml(o);
+
+            var s = new XmlReaderSettings {IgnoreWhitespace = true};
+            using (var r = XmlReader.Create(fileName, s))
+            {
+                r.MoveToContent();
+                r.ReadStartElement("root");
+                Assert.IsTrue(r.IsEmptyElement);
+                Assert.IsTrue(r.ReadElementContentAsString("FirstProperty", string.Empty) == "");
+
+                // SecondProperty was null but it was serialized anyway since SerializeEmtpyOrNullStrings is true
+            }
+        }
+        private static
+            XmlWriter GetXmlWriter(string fileName)
         {
             var settings = new XmlWriterSettings();
             return XmlWriter.Create(fileName, settings);
@@ -65,6 +109,7 @@ namespace BusinessObjects.Tests
         private static string WriteXml(IXmlSerializable obj)
         {
             var f = Path.GetTempFileName();
+            //var f = "test.xml";
             using (var writer = GetXmlWriter(f))
             {
                 writer.WriteStartElement("root");

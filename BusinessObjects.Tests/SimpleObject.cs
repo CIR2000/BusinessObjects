@@ -1,3 +1,4 @@
+using System;
 using System.Xml;
 
 namespace BusinessObjects.Tests
@@ -11,5 +12,14 @@ namespace BusinessObjects.Tests
 
         [DataProperty (order:0)]
         public string AnotherProperty { get; set; }
+
+        [DataProperty]
+        public decimal? DecimalProperty { get; set; }
+
+        [DataProperty]
+        public DateTime? DateTimeProperty { get; set; }
+        
+        [DataProperty][IgnoreXmlDateFormat]
+        public DateTime? DateTimeIgnoreXmlDateFormatProperty { get; set; }
     }
 }

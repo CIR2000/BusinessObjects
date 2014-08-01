@@ -76,7 +76,7 @@ namespace BusinessObjects
             foreach (var prop in GetAllDataProperties())
             {
                 var propertyValue = prop.GetValue(this, null);
-                if (propertyValue == null) continue;
+                if (propertyValue == null && !XmlOptions.SerializeNullValues) continue;
 
                 // if it's a BusinessObject instance just let it flush it's own data.
                 var child = propertyValue as BusinessObject;
@@ -98,7 +98,7 @@ namespace BusinessObjects
                 }
 
                 if (propertyValue is string) {
-                    if (!string.IsNullOrEmpty(propertyValue.ToString()) || XmlOptions.SerializeEmptyOrNullStrings) {
+                    if (!string.IsNullOrEmpty(propertyValue.ToString()) || XmlOptions.SerializeEmptyStrings) {
                         w.WriteElementString(prop.Name, propertyValue.ToString());
                     }
                     continue;
@@ -113,8 +113,10 @@ namespace BusinessObjects
                 }
 
                 // all else fail so just let the value flush straight to XML.
-                w.WriteStartElement(prop.Name); 
-                w.WriteValue(propertyValue); 
+                w.WriteStartElement(prop.Name);
+                if (propertyValue != null) { 
+                    w.WriteValue(propertyValue); 
+                }
                 w.WriteEndElement();
             }
         }
