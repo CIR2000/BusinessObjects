@@ -6,10 +6,10 @@ namespace BusinessObjects.Tests
         public SimpleObject() { }
         public SimpleObject(XmlReader r) : base(r) { }
 
-        [DataProperty]
+        [DataProperty (order:1)] 
         public string SimpleProperty { get; set; }
 
-        [DataProperty]
+        [DataProperty (order:0)]
         public string AnotherProperty { get; set; }
     }
 }

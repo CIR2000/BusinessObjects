@@ -40,26 +40,25 @@ namespace BusinessObjects.Tests
         [DataProperty]
         public string RequiredProperty { get; set; }
 
-        [DataProperty]
+        [DataProperty (order:3)]
         public string CountryProperty { get; set; }
 
-        [DataProperty]
+        [DataProperty (order:4)]
         public string DelegateProperty { get; set; }
 
         [DataProperty]
         public string RegexProperty { get; set; }
 
-        [DataProperty]
+        [DataProperty (order:0)]
         public string FirstProperty { get; set; }
 
-        [DataProperty]
+        [DataProperty (order:1)]
         public string SecondProperty { get; set; }
 
-        [DataProperty]
+        [DataProperty (order:2)]
         public string AndProperty { get; set; }
 
-
-        [DataProperty]
+        [DataProperty (order:5)]
         public SimpleObject SimpleObject { get { return _simple; } }
     }
 }

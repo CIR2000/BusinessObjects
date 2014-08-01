@@ -1,8 +1,5 @@
-﻿using BusinessObjects.Validators;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.IO;
-using System.Xml;
 
 namespace BusinessObjects.Tests
 {
