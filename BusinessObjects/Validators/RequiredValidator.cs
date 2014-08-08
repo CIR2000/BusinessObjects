@@ -1,5 +1,3 @@
-using BusinessObjects;
-
 namespace BusinessObjects.Validators {
     /// <summary>
     /// Validates that a property value is not null or, if of BusinessObject type, not empty.
@@ -16,14 +14,19 @@ namespace BusinessObjects.Validators {
         /// <summary>
         /// Validates that the rule has been followed.
         /// </summary>
-        public override bool Validate(BusinessObject businessObject) {
+        public override bool Validate(BusinessObjectBase businessObject) {
             var v = GetPropertyValue(businessObject, PropertyName);
-            if (v is string)
+
+            var @string = v as string;
+            if (@string != null) {
                 return !string.IsNullOrEmpty((string)v);
-            if (v is BusinessObject) {
-                var o = (BusinessObject)v;
-                return !o.IsEmpty();
             }
+
+            var @base = v as BusinessObjectBase;
+            if (@base != null) {
+                return !@base.IsEmpty();
+            }
+
             return v != null;
         }
     }

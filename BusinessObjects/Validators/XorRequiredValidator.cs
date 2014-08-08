@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using BusinessObjects;
 
 namespace BusinessObjects.Validators
 {
@@ -18,8 +17,8 @@ namespace BusinessObjects.Validators
         /// <summary>
         /// Validates that the rule has been followed.
         /// </summary>
-        public override bool Validate(BusinessObject businessObject) {
-            var cnt = Properties.Select(prop => GetPropertyValue(businessObject, prop)).Count(v => v != null && v != "");
+        public override bool Validate(BusinessObjectBase businessObject) {
+            var cnt = Properties.Select(prop => GetPropertyValue(businessObject, prop)).Count(v => v != null && (string)v != string.Empty);
             return cnt == 1;
         }
     }

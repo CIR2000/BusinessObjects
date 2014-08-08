@@ -1,5 +1,3 @@
-using BusinessObjects;
-
 namespace BusinessObjects.Validators {
     /// <summary>
     /// A simple type of domain object rule that uses a delegate for validation. 
@@ -39,7 +37,7 @@ namespace BusinessObjects.Validators {
         /// </summary>
         /// <param name="businessObject">The domain object being validated.</param>
         /// <returns>True if the rule has not been broken, or false if it has.</returns>
-        public override bool Validate(BusinessObject businessObject) {
+        public override bool Validate(BusinessObjectBase businessObject) {
             return ValidatorDelegate();
         }
     }

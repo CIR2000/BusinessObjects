@@ -139,8 +139,12 @@ namespace BusinessObjects.Tests
             o.SimpleProperty = null;
             o.AnotherProperty = "12345";
             Assert.IsTrue(v.Validate(o));
+            o.SimpleProperty = string.Empty;
+            Assert.IsTrue(v.Validate(o));
             o.SimpleProperty = "12345";
             o.AnotherProperty = null;
+            Assert.IsTrue(v.Validate(o));
+            o.AnotherProperty = string.Empty;
             Assert.IsTrue(v.Validate(o));
 
             o.SimpleProperty = null;
@@ -151,12 +155,6 @@ namespace BusinessObjects.Tests
             Assert.IsFalse(v.Validate(o));
 
             // Since its an exclusive or we also won't validate if more than one property has values.
-            o.SimpleProperty = string.Empty;
-            o.AnotherProperty = "12345";
-            Assert.IsFalse(v.Validate(o));
-            o.SimpleProperty = "12345";
-            o.AnotherProperty = string.Empty;
-            Assert.IsFalse(v.Validate(o));
             o.SimpleProperty = "12345";
             o.AnotherProperty = "67890";
             Assert.IsFalse(v.Validate(o));

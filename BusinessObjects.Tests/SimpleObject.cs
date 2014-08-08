@@ -1,5 +1,5 @@
+using System;
 using System.Xml;
-using BusinessObjects.PCL;
 
 namespace BusinessObjects.Tests
 {
@@ -7,12 +7,19 @@ namespace BusinessObjects.Tests
         public SimpleObject() { }
         public SimpleObject(XmlReader r) : base(r) { }
 
-        public override string XmlName { get { return "SimpleObject"; } }
-
-        [OrderedDataProperty]
+        [DataProperty (order:1)] 
         public string SimpleProperty { get; set; }
 
-        [OrderedDataProperty]
+        [DataProperty (order:0)]
         public string AnotherProperty { get; set; }
+
+        [DataProperty]
+        public decimal? DecimalProperty { get; set; }
+
+        [DataProperty]
+        public DateTime? DateTimeProperty { get; set; }
+        
+        [DataProperty][IgnoreXmlDateFormat]
+        public DateTime? DateTimeIgnoreXmlDateFormatProperty { get; set; }
     }
 }

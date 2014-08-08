@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 
 namespace BusinessObjects
 {
@@ -79,8 +76,7 @@ namespace BusinessObjects
         /// <summary>
         /// ISO_3166-1 countries.
         /// </summary>
-        public static readonly Country[] List = new[]
-        {
+        public static readonly Country[] List = {
             new Country("", "", null, null),
             new Country("Afghanistan", "AF", "AFG", "004"),
             new Country("Åland Islands", "AX", "ALA", "248"),
@@ -330,7 +326,7 @@ namespace BusinessObjects
             new Country("Western Sahara", "EH", "ESH", "732"),
             new Country("Yemen", "YE", "YEM", "887"),
             new Country("Zambia", "ZM", "ZMB", "894"),
-            new Country("Zimbabwe", "ZW", "ZWE", "716"),
+            new Country("Zimbabwe", "ZW", "ZWE", "716")
         };
     }
 }

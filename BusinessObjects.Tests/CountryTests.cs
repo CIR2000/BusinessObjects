@@ -1,6 +1,4 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using BusinessObjects.PCL;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BusinessObjects.Tests
 {
@@ -10,18 +8,18 @@ namespace BusinessObjects.Tests
         [TestMethod]
         public void TestMethod1()
         {
-            const int expectedLength = 249;
+            const int expectedLength = 250;
             Assert.AreEqual(Country.List.Length, expectedLength);
             Assert.AreEqual(Country.TwoLetterCodes.Length, expectedLength);
             Assert.AreEqual(Country.ThreeLetterCodes.Length, expectedLength);
             Assert.AreEqual(Country.NumericCodes.Length, expectedLength);
             Assert.AreEqual(Country.Names.Length, expectedLength);
 
-            Assert.AreEqual(Country.List[0].TwoLetterCode, "AF");
-            Assert.AreEqual(Country.TwoLetterCodes[0], "AF");
-            Assert.AreEqual(Country.ThreeLetterCodes[0], "AFG");
-            Assert.AreEqual(Country.NumericCodes[0], "004");
-            Assert.AreEqual(Country.Names[0], "Afghanistan");
+            Assert.AreEqual(Country.List[1].TwoLetterCode, "AF");
+            Assert.AreEqual(Country.TwoLetterCodes[1], "AF");
+            Assert.AreEqual(Country.ThreeLetterCodes[1], "AFG");
+            Assert.AreEqual(Country.NumericCodes[1], "004");
+            Assert.AreEqual(Country.Names[1], "Afghanistan");
 
         }
     }

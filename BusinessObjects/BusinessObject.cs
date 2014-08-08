@@ -1,266 +1,62 @@
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
-using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 using System.Xml;
-using BusinessObjects.Validators;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 
-namespace BusinessObjects {
+namespace BusinessObjects
+{
     /// <summary>
-    /// The class all domain objects must inherit from. 
-    ///
-    /// Currently supports:
     /// - XML (de)serialization;
-    /// - Exensible and complex validation;
-    /// - IEquatable so you can easily compare complex BusinessObjects togheter.
-    /// - Binding (INotififyPropertyChanged and IDataErrorInfo).
-    /// 
-    /// TODO:
-    /// - BeginEdit()/EndEdit() combination, and rollbacks for cancels (IEditableObject).
+    /// - JSON serialization.
     /// </summary>
-    public abstract class BusinessObject:  
-        INotifyPropertyChanged,
-         IEquatable<BusinessObject> {
-        protected List<Validator> Rules;
-
+    public class BusinessObject : 
+        BusinessObjectBase,
+        IXmlSerializable {
         /// <summary>
         /// Constructor.
         /// </summary>
-        protected BusinessObject() {}
+        protected BusinessObject() { 
+            XmlOptions = new XmlOptions();
+        }
         protected BusinessObject(XmlReader r) : this() { ReadXml(r); }
-        //protected BusinessObject(string fileName) : this() { ReadXml(fileName); }
+
+        public XmlOptions XmlOptions { get; set; }
+
+        public bool ShouldSerializeIsValid() { return false; }
+        public bool ShouldSerializeError() { return false; }
+        public bool ShouldSerializeIsEmpty() { return false; }
+        public bool ShouldSerializeXmlDateFormat() { return false; }
 
         /// <summary>
-        /// Gets a value indicating whether or not this domain object is valid. 
+        /// Serializes the instance to JSON
         /// </summary>
-        public virtual bool IsValid {
-            get {
-                return Error == null;
-            }
-        }
-
-        /// <summary>
-        /// Gets an error message indicating what is wrong with this domain object. The default is a null string.
-        /// </summary>
-        public virtual string Error {
-            get
-            {
-                // Get object errors
-                var result = this[string.Empty];
-                // Also retrieve child objects errors
-                var childrenErrors = ChildrenErrors;
-
-                result += (result != null) ? Environment.NewLine + childrenErrors : childrenErrors;
-                if (result.Trim().Length == 0) {
-                    result = null;
-                }
-                return result;
-            }
-        }
-
-        /// <summary>
-        /// Gets error messages indicating what is wrong with eventual child domain objects. The default is a null string.
-        /// </summary>
-        private string ChildrenErrors {
-            get {
-                string result = null;
-
-                foreach (var prop in GetAllDataProperties())
-                {
-                    var v = prop.GetValue(this, null);
-
-                    // Only operate on BusinessObject types.
-                    if (!(v is BusinessObject)) continue;
-
-                    var childDomainObject = (BusinessObject)v;
-                    if (childDomainObject.IsEmpty()) continue;
-
-                    var childErrors = childDomainObject.Error;
-                    if (childErrors == null) continue;
-
-                    // TODO Kind of hacky. Perhaps review the Error system (array?). 
-                    // Inject child object name into error messages. 
-                    // IDataErrorInfo wants a string as return value however.
-                    var errors = childErrors.Split(new[] {"\r\n"}, StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var error in errors) {
-                        result += prop.Name + "." + error + Environment.NewLine;
-                    }
-                }
-                return result;
-            }
-        }
-
-        /// <summary>
-        /// Gets the error message for the property with the given name.
-        /// </summary>
-        /// <param name="propertyName">The name of the property whose error message to get.</param>
-        /// <returns>The error message for the property. The default is an empty string ("").</returns>
-        public virtual string this[string propertyName] {
-            get {
-                var result = string.Empty;
-
-                foreach (var validator in GetBrokenRules(propertyName)) {
-                    if (propertyName == string.Empty || validator.PropertyName == propertyName) {
-                        result += propertyName + validator.PropertyName + ": " + validator.Description;
-                        result += Environment.NewLine;
-                    }
-                }
-                result = result.Trim();
-                if (result.Length == 0) {
-                    result = null;
-                }
-                return result;
-            }
-        }
-
-        /// <summary>
-        /// Validates all rules on this domain object, returning a list of the broken rules.
-        /// </summary>
-        /// <returns>A read-only collection of rules that have been broken.</returns>
-        public virtual ReadOnlyCollection<Validator> GetBrokenRules() {
-            return GetBrokenRules(string.Empty);
-        }
-
-        /// <summary>
-        /// Validates all rules on this domain object for a given property, returning a list of the broken rules.
-        /// </summary>
-        /// <param name="property">The name of the property to check for. If null or empty, all rules will be checked.</param>
-        /// <returns>A read-only collection of rules that have been broken.</returns>
-        public virtual ReadOnlyCollection<Validator> GetBrokenRules(string property) {
-            property = CleanString(property);
-            
-            // If we haven't yet created the rules, create them now.
-            if (Rules == null) {
-                Rules = new List<Validator>();
-                Rules.AddRange(CreateRules());
-            }
-            var broken = new List<Validator>();
-
-            
-            foreach (var validator in Rules) {
-                // Ensure we only validate a rule 
-                if (validator.PropertyName == property || property == string.Empty) {
-                    var isRuleBroken = !validator.Validate(this);
-                    //Debug.WriteLine(DateTime.Now.ToLongTimeString() + ": Validating the rule: '" + r.ToString() + "' on object '" + this.ToString() + "'. Result = " + ((isRuleBroken == false) ? "Valid" : "Broken"));
-                    if (isRuleBroken) {
-                        broken.Add(validator);
-                    }
-                }
-            }
-            return new ReadOnlyCollection<Validator>(broken);
-        }
-
-        /// <summary>
-        /// Occurs when any properties are changed on this object.
-        /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        /// <summary>
-        /// Override this method to create your own rules to validate this business object. These rules must all be met before 
-        /// the business object is considered valid enough to save to the data store.
-        /// </summary>
-        /// <returns>A collection of rules to add for this business object.</returns>
-        protected virtual List<Validator> CreateRules() {
-            return new List<Validator>();
-        }
-
-        /// <summary>
-        /// A helper method that raises the PropertyChanged event for a property.
-        /// </summary>
-        ///<remarks>This is a paremeterless version which uses .NET 4.0 CallerMemberName to guess the calling function name.</remarks>
-        protected virtual void NotifyChanged([CallerMemberName] string caller = "") {
-            NotifyChanged(new[]{caller});
+        /// <returns>A JSON string representing the class instance.</returns>
+        public virtual string ToJson() {
+            return ToJson(JsonOptions.None);
         }
         /// <summary>
-        /// A helper method that raises the PropertyChanged event for a property.
+        /// Serializes the class to JSON.
         /// </summary>
-        /// <param name="propertyNames">The names of the properties that changed.</param>
-        /// <remarks>This is a .NET 2.0 compatible version.</remarks>
-        protected virtual void NotifyChanged(params string[] propertyNames) {
-            foreach (var name in propertyNames) {
-                OnPropertyChanged(new PropertyChangedEventArgs(name));
-            }
-            OnPropertyChanged(new PropertyChangedEventArgs("IsValid"));
+        /// <param name="jsonOptions">JSON formatting options.</param>
+        /// <returns>A JSON string representing the class instance.</returns>
+        public virtual string ToJson(JsonOptions jsonOptions) {
+            var json = JsonConvert.SerializeObject(this, 
+                (jsonOptions == JsonOptions.Indented) ? Formatting.Indented : Formatting.None,
+                new JsonSerializerSettings { 
+                    ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+                    DefaultValueHandling = DefaultValueHandling.Ignore,
+                    //NullValueHandling = NullValueHandling.Ignore,
+                });
+            return json;
         }
-
-        /// <summary>
-        /// Cleans a string by ensuring it isn't null and trimming it.
-        /// </summary>
-        /// <param name="s">The string to clean.</param>
-        protected string CleanString(string s) {
-            return (s ?? string.Empty).Trim();
-        }
-
-        /// <summary>
-        /// Raises the PropertyChanged event.
-        /// </summary>
-        /// <param name="e">Event arguments.</param>
-        protected virtual void OnPropertyChanged(PropertyChangedEventArgs e) {
-            if (PropertyChanged != null) {
-                PropertyChanged(this, e);
-            }
-        }
-
-        /// <summary>
-        /// Checks wether a BusinessObject instance is empty.
-        /// </summary>
-        /// <returns>Returns true if the object is empty; false otherwise.</returns>
-        public virtual Boolean IsEmpty()
-        {
-            // TODO support more data types.
-
-            var props = GetAllDataProperties().ToList();
-            var i = 0;
-            foreach (var prop in props) {
-                var v = prop.GetValue(this, null);
-                if (v == null) {
-                    i++;
-                    continue;
-                }
-                if (v is string) {
-                    if (string.IsNullOrEmpty((string) v)) 
-                        i++;
-                    continue;
-                }
-                if (v is BusinessObject && ((BusinessObject) v).IsEmpty()) 
-                    i++;
-            }
-            return i == props.Count();
-        }
-
-        /// <summary>
-        /// Provides a list of actual data properties for the current BusinessObject instance, sorted by writing order.
-        /// </summary>
-        /// <remarks>Only properties flagged with the OrderedDataProperty attribute will be returned.</remarks>
-        /// <returns>A enumerable list of PropertyInfo instances.</returns>
-        protected IEnumerable<PropertyInfo> GetAllDataProperties() {
-            var props = GetType().GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(OrderedDataProperty)));
-            return props.OrderBy(order => ((OrderedDataProperty)Attribute.GetCustomAttribute(order, typeof(OrderedDataProperty))).Order);
-        }
-
         #region XML
 
-        /// <summary>
-        /// The name of the XML Element that is bound to store this BusinessObject instance.
-        /// </summary>
-        public abstract string XmlName { get; }
-
-        /// <summary>
-        /// Optional string format to be applied to DateTime values being serialized to XML.
-        /// </summary>
-        public virtual string XmlDateFormat { get { return null; } }
-
-        /// <summary>
-        /// Array of DateTime properties for which the XmlDateFormat property should be ignored.
-        /// </summary>
-        public virtual string[] XmlDateFormatIgnoreProperties { get { return null; } }
+        public XmlSchema GetSchema() { return null; }
 
         /// <summary>
         /// Serializes the current BusinessObject instance to a XML file.
@@ -280,13 +76,13 @@ namespace BusinessObjects {
             foreach (var prop in GetAllDataProperties())
             {
                 var propertyValue = prop.GetValue(this, null);
-                if (propertyValue == null) continue;
+                if (propertyValue == null && !XmlOptions.SerializeNullValues) continue;
 
                 // if it's a BusinessObject instance just let it flush it's own data.
                 var child = propertyValue as BusinessObject;
                 if (child != null) {
-                    if (child.IsEmpty()) continue;
-                    w.WriteStartElement(child.XmlName);
+                    if (child.IsEmpty() && XmlOptions.SerializeEmptyBusinessObjects == false) continue;
+                    w.WriteStartElement(child.GetType().Name);
                     child.WriteXml(w);
                     w.WriteEndElement();
                     continue;
@@ -301,27 +97,26 @@ namespace BusinessObjects {
                     continue;
                 }
 
-                // DateTimes deserve special treatment if XmlDateFormat is set.
-                if (propertyValue is DateTime && XmlDateFormat != null) {
-                    if (XmlDateFormatIgnoreProperties == null || Array.IndexOf(XmlDateFormatIgnoreProperties, prop.Name) == -1) {
-                        w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlDateFormat));
-                        continue;
-                    }
-                }
                 if (propertyValue is string) {
-                    if (!string.IsNullOrEmpty(propertyValue.ToString())) {
+                    if (!string.IsNullOrEmpty(propertyValue.ToString()) || XmlOptions.SerializeEmptyStrings) {
                         w.WriteElementString(prop.Name, propertyValue.ToString());
                     }
                     continue;
                 }
-                if (propertyValue is decimal) {
-                    w.WriteElementString(prop.Name, ((decimal)propertyValue).ToString("0.00", CultureInfo.InvariantCulture));
+                if (propertyValue is DateTime && XmlOptions.DateTimeFormat != null && !Attribute.IsDefined(prop, typeof(IgnoreXmlDateFormat))) {
+                    w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlOptions.DateTimeFormat));
+                    continue;
+                }
+                if (propertyValue is decimal && XmlOptions.DecimalFormat != null) {
+                    w.WriteElementString(prop.Name, ((decimal)propertyValue).ToString(XmlOptions.DecimalFormat, CultureInfo.InvariantCulture));
                     continue;
                 }
 
                 // all else fail so just let the value flush straight to XML.
-                w.WriteStartElement(prop.Name); 
-                w.WriteValue(propertyValue); 
+                w.WriteStartElement(prop.Name);
+                if (propertyValue != null) { 
+                    w.WriteValue(propertyValue); 
+                }
                 w.WriteEndElement();
             }
         }
@@ -338,20 +133,11 @@ namespace BusinessObjects {
             while (e != null && e.MoveNext()) {
                 var bo = e.Current as BusinessObject;
                 // ReSharper disable once PossibleNullReferenceException
-                w.WriteStartElement(bo.XmlName);
+                w.WriteStartElement(bo.GetType().Name);
                 bo.WriteXml(w);
                 w.WriteEndElement();
             }
         }
-
-        /// <summary>
-        /// Deserializes the current BusinessObject from a XML file.
-        /// </summary>
-        /// <param name="fileName">Name of the file to read from.</param>
-        //public virtual void ReadXml(string fileName) {
-        //    var settings = new XmlReaderSettings {IgnoreWhitespace = true};
-        //    using (var reader = XmlReader.Create(fileName, settings)) { ReadXml(reader); }
-        //}
 
         /// <summary>
         /// Deserializes the current BusinessObject from a XML stream.
@@ -392,6 +178,7 @@ namespace BusinessObjects {
                     // ReadElementContentAs won't accept a nullable DateTime.
                     propertyType = typeof(DateTime);
                 }
+                // ReSharper disable once AssignNullToNotNullAttribute
                 prop.SetValue(this, r.ReadElementContentAs(propertyType, null), null);
             }
             r.ReadEndElement();
@@ -410,7 +197,7 @@ namespace BusinessObjects {
 
             // quit if it's not a BusinessObject subclass.
             if (elementType.BaseType == null) return;
-            if (!typeof(BusinessObject).IsAssignableFrom(elementType)) return;
+            if (!typeof(BusinessObjectBase).IsAssignableFrom(elementType)) return;
 
             // clear the list first.
             propertyValue.GetType().GetMethod("Clear").Invoke(propertyValue, null);
@@ -422,69 +209,5 @@ namespace BusinessObjects {
             }
         }
         #endregion
-
-        #region IEquatable
-        public bool Equals(BusinessObject other)
-        {
-            if (other == null)
-                return false;
-
-            foreach (var prop in GetAllDataProperties()) {
-                var v1 = prop.GetValue(this, null);
-                var v2 = prop.GetValue(other, null);
-                if ( v1 != v2 && !v1.Equals(v2)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        public override bool Equals(object obj) {
-            if (obj == null)
-                return false;
-
-            var o = obj as BusinessObject;
-            return o != null && Equals(o);
-        }
-        public static bool operator == (BusinessObject o1, BusinessObject o2)
-        {
-            if ((object)o1 == null || ((object)o2) == null)
-                return Equals(o1, o2);
-
-            return o1.Equals(o2);
-        }
-
-        public static bool operator != (BusinessObject o1, BusinessObject o2)
-        {
-            if (o1 == null || o2 == null)
-                return !Equals(o1, o2);
-
-            return !(o1.Equals(o2));
-        }
-        public override int GetHashCode() {
-            return this.GetHashCodeFromFields(GetAllDataProperties());
-        }
-        #endregion
-    }
-    public static class ObjectExtensions
-    {
-        private const int SeedPrimeNumber = 691;
-        private const int FieldPrimeNumber = 397;
-        /// <summary>
-        /// Allows GetHashCode() method to return a Hash based ont he object properties.
-        /// </summary>
-        /// <param name="obj">The object fro which the hash is being generated.</param>
-        /// <param name="fields">The list of fields to include in the hash generation.</param>
-        /// <returns></returns>
-        public static int GetHashCodeFromFields(this object obj, params object[] fields)
-        {
-            unchecked
-            { //unchecked to prevent throwing overflow exception
-                var hashCode = SeedPrimeNumber;
-                foreach (var b in fields)
-                    if (b != null)
-                        hashCode *= FieldPrimeNumber + b.GetHashCode();
-                return hashCode;
-            }
-        }
     }
 }

@@ -1,133 +1,122 @@
-﻿using System;
+﻿using System.Xml.Serialization;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Xml;
-using BusinessObjects.PCL;
-using BusinessObjects.Validators;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BusinessObjects.Tests
 {
     [TestClass]
-    public class BusinessObjectTests
+    public class BusinessObjectTests : BaseClass
     {
-
-
         [TestMethod]
-        public void IsEmpty()
+        public void XmlSerializedObjectEqualsOriginalObject()
         {
-            var o = new SimpleObject();
-            Assert.IsTrue(o.IsEmpty());
+            var original = GetMock();
+            var fileName = WriteXml(original);
 
-            o.SimpleProperty = "hello";
-            Assert.IsFalse(o.IsEmpty());
+            // Test that retrieved object equals original object
+            var serialized = new ComplexObject();
+            var s = new XmlReaderSettings {IgnoreWhitespace = true};
+            var r = XmlReader.Create(fileName, s);
+            serialized.ReadXml(r);
+            Assert.IsTrue(serialized.Equals(original));
         }
 
         [TestMethod]
-        public void NonExistingProperty()
+        public void XmlSerializedElementsMatchPropertiesOrder()
         {
             var o = GetMock();
-            Assert.AreEqual(o.GetBrokenRules("non_existing_property").Count, 0);
-            Assert.IsNull(o["non_existing_property"]);
+            o.SecondProperty = "second";
+
+            var fileName = WriteXml(o);
+
+            //var o1 = new ComplexObject();
+            var s = new XmlReaderSettings {IgnoreWhitespace = true};
+            using (var r = XmlReader.Create(fileName, s))
+            {
+                r.MoveToContent();
+                r.ReadStartElement("root");
+                
+                // test that properties have been serialized in the proper order
+                Assert.IsTrue(r.ReadElementContentAsString("FirstProperty", string.Empty) == "first");
+                Assert.IsTrue(r.ReadElementContentAsString("SecondProperty", string.Empty) == "second");
+                Assert.IsTrue(r.ReadElementContentAsString("AndProperty", string.Empty) == "And");
+                // CountryProperty is 4th but it wasn't serialized as empty value, so we proceed on next one: DelegateProperty
+                Assert.IsTrue(r.ReadElementContentAsString("DelegateProperty", string.Empty) == "dummy");
+
+                // SimpleObject is next. Test that child BusinessObjects are properly serialized
+                r.ReadStartElement("SimpleObject");
+                Assert.IsTrue(r.ReadElementContentAsString("AnotherProperty", string.Empty) == "AnotherProperty");
+                Assert.IsTrue(r.ReadElementContentAsString("SimpleProperty", string.Empty) == "SimpleProperty");
+                r.ReadEndElement();
+
+                // RequiredProperty has no explictly set order, but it will be next as it is the only non-empty property left in the object
+                Assert.IsTrue(r.ReadElementContentAsString("RequiredProperty", string.Empty) == "hello");
+            }
+            
         }
 
         [TestMethod]
-        public void RequiredValidator()
-        {
-
-            const string propertyName = "RequiredProperty";
-
-            // instantiate an invalid object (required property is null).
-            var o = new ComplexObject();
-            AssertInvalidObject(o, propertyName, typeof(Validator));
-
-            o.RequiredProperty = "hello";
-            AssertValidObject(o, propertyName);
-        }
-
-        [TestMethod]
-        public void LengthValidator()
-        {
-
-            const string propertyName = "LengthProperty";
-            var expectedValidatorType = typeof (LengthValidator);
-
-            var o = GetMock();
-            o.LengthProperty = "too long for ya";
-            AssertInvalidObject(o, propertyName, expectedValidatorType);
-
-            o.LengthProperty = "hello";
-            AssertValidObject(o, propertyName);
-        }
-
-        [TestMethod]
-        public void SerializeXml()
+        public void XmlSerializeNullValues()
         {
             var o = GetMock();
+            o.FirstProperty = null;
+            o.XmlOptions.SerializeNullValues = true;
+            
+
+            var fileName = WriteXml(o);
+
+            var s = new XmlReaderSettings {IgnoreWhitespace = true};
+            using (var r = XmlReader.Create(fileName, s))
+            {
+                r.MoveToContent();
+                r.ReadStartElement("root");
+
+                Assert.IsTrue(r.IsEmptyElement);
+                Assert.IsTrue(r.ReadElementContentAsString("FirstProperty", string.Empty) == "");
+            }
+        }
+
+
+        [TestMethod]
+        public void XmlSerializeEmptyStrings()
+        {
+            var o = GetMock();
+            o.FirstProperty = string.Empty;
+            o.XmlOptions.SerializeEmptyStrings = true;
+            
+
+            var fileName = WriteXml(o);
+
+            var s = new XmlReaderSettings {IgnoreWhitespace = true};
+            using (var r = XmlReader.Create(fileName, s))
+            {
+                r.MoveToContent();
+                r.ReadStartElement("root");
+                Assert.IsTrue(r.IsEmptyElement);
+                Assert.IsTrue(r.ReadElementContentAsString("FirstProperty", string.Empty) == "");
+
+                // SecondProperty was null but it was serialized anyway since SerializeEmtpyOrNullStrings is true
+            }
+        }
+        private static
+            XmlWriter GetXmlWriter(string fileName)
+        {
+            var settings = new XmlWriterSettings();
+            return XmlWriter.Create(fileName, settings);
+        }
+
+        private static string WriteXml(IXmlSerializable obj)
+        {
             var f = Path.GetTempFileName();
-            var settings = new XmlWriterSettings {Indent = true};
-
-            using (var writer = XmlWriter.Create(f, settings))
+            //var f = "test.xml";
+            using (var writer = GetXmlWriter(f))
             {
                 writer.WriteStartElement("root");
-                o.WriteXml(writer);
+                obj.WriteXml(writer);
                 writer.WriteEndElement();
             }
-
-            var o1 = new ComplexObject();
-            var s = new XmlReaderSettings {IgnoreWhitespace = true};
-            var r = XmlReader.Create(f, s);
-            o1.ReadXml(r);
-            Assert.IsTrue(o.Equals(o1));
-        }
-
-        private static ComplexObject GetMock()
-        {
-            var o = new ComplexObject {RequiredProperty = "hello"};
-            o.SimpleObject.AnotherProperty = "AnotherProperty";
-            o.SimpleObject.SimpleProperty = "SimpleProperty";
-            return o;
-        }
-
-        private static void AssertValidObject(BusinessObject o)
-        {
-            Assert.IsTrue(o.IsValid);
-            Assert.IsNull(o.Error);
-            Assert.AreEqual(o.GetBrokenRules().Count, 0);
-        }
-
-        private static void AssertValidObject(BusinessObject o, string property)
-        {
-            AssertValidObject(o);
-            AssertValidProperty(o, property);
-        }
-
-        private static void AssertValidProperty(BusinessObject o, string property)
-        {
-            Assert.AreEqual(o.GetBrokenRules(property).Count, 0);
-            Assert.IsNull(o[property]);
-        }
-
-        private static void AssertInvalidObject(BusinessObject o)
-        {
-            Assert.IsFalse(o.IsValid);
-            Assert.AreEqual(o.GetBrokenRules().Count, 1);
-        }
-
-        private static void AssertInvalidObject(BusinessObject o, string property, Type expectedValidatorType)
-        {
-            AssertInvalidObject(o);
-            AssertInvalidProperty(o, property, expectedValidatorType);
-        }
-
-        private static void AssertInvalidProperty(BusinessObject o, string property, Type expectedValidatorType)
-        {
-            Assert.AreEqual(o.GetBrokenRules(property).Count, 1);
-            Assert.IsNotNull(o[property]);
-
-            var v = o.GetBrokenRules()[0];
-            Assert.AreEqual(property, v.PropertyName);
-            Assert.IsNotNull(v.Description);
-            Assert.IsInstanceOfType(v, expectedValidatorType);
+            return f;
         }
     }
 }

@@ -1,23 +1,17 @@
+using BusinessObjects.Validators;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
-using System.Xml;
-using BusinessObjects.Validators;
 
-namespace BusinessObjects.PCL {
+namespace BusinessObjects {
     /// <summary>
     /// The class all domain objects must inherit from. 
     ///
     /// Currently supports:
-    /// - XML (de)serialization;
     /// - Exensible and complex validation;
     /// - IEquatable so you can easily compare complex BusinessObjects togheter.
     /// - Binding (INotififyPropertyChanged and IDataErrorInfo).
@@ -25,17 +19,10 @@ namespace BusinessObjects.PCL {
     /// TODO:
     /// - BeginEdit()/EndEdit() combination, and rollbacks for cancels (IEditableObject).
     /// </summary>
-    public abstract class BusinessObject:  
+    public abstract class BusinessObjectBase:  
         INotifyPropertyChanged,
-         IEquatable<BusinessObject> {
+        IEquatable<BusinessObjectBase> {
         protected List<Validator> Rules;
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        protected BusinessObject() {}
-        protected BusinessObject(XmlReader r) : this() { ReadXml(r); }
-        //protected BusinessObject(string fileName) : this() { ReadXml(fileName); }
 
         /// <summary>
         /// Gets a value indicating whether or not this domain object is valid. 
@@ -45,7 +32,6 @@ namespace BusinessObjects.PCL {
                 return Error == null;
             }
         }
-
         /// <summary>
         /// Gets an error message indicating what is wrong with this domain object. The default is a null string.
         /// </summary>
@@ -77,9 +63,9 @@ namespace BusinessObjects.PCL {
                     var v = prop.GetValue(this, null);
 
                     // Only operate on BusinessObject types.
-                    if (!(v is BusinessObject)) continue;
+                    if (!(v is BusinessObjectBase)) continue;
 
-                    var childDomainObject = (BusinessObject)v;
+                    var childDomainObject = (BusinessObjectBase)v;
                     if (childDomainObject.IsEmpty()) continue;
 
                     var childErrors = childDomainObject.Error;
@@ -229,8 +215,9 @@ namespace BusinessObjects.PCL {
                         i++;
                     continue;
                 }
-                if (v is BusinessObject && ((BusinessObject) v).IsEmpty()) 
+                if (v is BusinessObjectBase && ((BusinessObjectBase)v).IsEmpty()) { 
                     i++;
+                }
             }
             return i == props.Count();
         }
@@ -241,186 +228,13 @@ namespace BusinessObjects.PCL {
         /// <remarks>Only properties flagged with the OrderedDataProperty attribute will be returned.</remarks>
         /// <returns>A enumerable list of PropertyInfo instances.</returns>
         protected IEnumerable<PropertyInfo> GetAllDataProperties() {
-            var props = GetType().GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(OrderedDataProperty)));
-            return props.OrderBy(order => ((OrderedDataProperty)Attribute.GetCustomAttribute(order, typeof(OrderedDataProperty))).Order);
+            var props = GetType().GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(DataProperty)));
+            return props.OrderBy(order => ((DataProperty)Attribute.GetCustomAttribute(order, typeof(DataProperty))).Order);
         }
 
-        #region XML
-
-        /// <summary>
-        /// The name of the XML Element that is bound to store this BusinessObject instance.
-        /// </summary>
-        public abstract string XmlName { get; }
-
-        /// <summary>
-        /// Optional string format to be applied to DateTime values being serialized to XML.
-        /// </summary>
-        public virtual string XmlDateFormat { get { return null; } }
-
-        /// <summary>
-        /// Array of DateTime properties for which the XmlDateFormat property should be ignored.
-        /// </summary>
-        public virtual string[] XmlDateFormatIgnoreProperties { get { return null; } }
-
-        /// <summary>
-        /// Serializes the current BusinessObject instance to a XML file.
-        /// </summary>
-        /// <param name="fileName">Name of the file to write to.</param>
-        public virtual void WriteXml(string fileName) {
-            var settings = new XmlWriterSettings {Indent = true};
-            using (var writer = XmlWriter.Create(new System.Text.StringBuilder(fileName), settings)) { WriteXml(writer); }
-        }
-
-        /// <summary>
-        /// Serializes the current BusinessObject instance to a XML stream.
-        /// </summary>
-        /// <param name="w">Active XML stream writer.</param>
-        /// <remarks>Writes only its inner content, not the outer element. Leaves the writer at the same depth.</remarks>
-        public virtual void WriteXml(XmlWriter w) {
-            foreach (var prop in GetAllDataProperties())
-            {
-                var propertyValue = prop.GetValue(this, null);
-                if (propertyValue == null) continue;
-
-                // if it's a BusinessObject instance just let it flush it's own data.
-                var child = propertyValue as BusinessObject;
-                if (child != null) {
-                    if (child.IsEmpty()) continue;
-                    w.WriteStartElement(child.XmlName);
-                    child.WriteXml(w);
-                    w.WriteEndElement();
-                    continue;
-                }
-
-                // if property type is List<T>, assume it's of BusinessObjects and try to fetch them all from XML.
-                var tList = typeof (List<>);
-                var propertyType = prop.PropertyType;
-                if (prop.PropertyType.IsGenericType && tList.IsAssignableFrom(propertyType.GetGenericTypeDefinition()) ||
-                    propertyType.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == tList)) {
-                    WriteXmlList(propertyValue, w);
-                    continue;
-                }
-
-                // DateTimes deserve special treatment if XmlDateFormat is set.
-                if (propertyValue is DateTime && XmlDateFormat != null) {
-                    if (XmlDateFormatIgnoreProperties == null || Array.IndexOf(XmlDateFormatIgnoreProperties, prop.Name) == -1) {
-                        w.WriteElementString(prop.Name, ((DateTime)propertyValue).ToString(XmlDateFormat));
-                        continue;
-                    }
-                }
-                if (propertyValue is string) {
-                    if (!string.IsNullOrEmpty(propertyValue.ToString())) {
-                        w.WriteElementString(prop.Name, propertyValue.ToString());
-                    }
-                    continue;
-                }
-                if (propertyValue is decimal) {
-                    w.WriteElementString(prop.Name, ((decimal)propertyValue).ToString("0.00", CultureInfo.InvariantCulture));
-                    continue;
-                }
-
-                // all else fail so just let the value flush straight to XML.
-                w.WriteStartElement(prop.Name); 
-                w.WriteValue(propertyValue); 
-                w.WriteEndElement();
-            }
-        }
-
-        /// <summary>
-        /// Deserializes a List of BusinessObject to one or more XML elements.
-        /// </summary>
-        /// <param name="propertyValue">Property value.</param>
-        /// <param name="w">Active XML stream writer.</param>
-        private static void WriteXmlList(object propertyValue, XmlWriter w)
-        {
-            var e = propertyValue.GetType().GetMethod("GetEnumerator").Invoke(propertyValue, null) as IEnumerator;
-
-            while (e != null && e.MoveNext()) {
-                var bo = e.Current as BusinessObject;
-                // ReSharper disable once PossibleNullReferenceException
-                w.WriteStartElement(bo.XmlName);
-                bo.WriteXml(w);
-                w.WriteEndElement();
-            }
-        }
-
-        /// <summary>
-        /// Deserializes the current BusinessObject from a XML file.
-        /// </summary>
-        /// <param name="fileName">Name of the file to read from.</param>
-        //public virtual void ReadXml(string fileName) {
-        //    var settings = new XmlReaderSettings {IgnoreWhitespace = true};
-        //    using (var reader = XmlReader.Create(fileName, settings)) { ReadXml(reader); }
-        //}
-
-        /// <summary>
-        /// Deserializes the current BusinessObject from a XML stream.
-        /// </summary>
-        /// <param name="r">Active XML stream reader.</param>
-        /// <remarks>Reads the outer element. Leaves the reader at the same depth.</remarks>
-        // TODO Clear properties before reading from file
-        public virtual void ReadXml(XmlReader r) {
-            var props = GetAllDataProperties().ToList();
-            r.ReadStartElement();
-            while (r.NodeType == XmlNodeType.Element) {
-
-                var prop = props.FirstOrDefault(n => n.Name.Equals(r.Name));
-                if (prop == null) {
-                    // ignore unknown property.
-                    r.Skip();
-                    continue;
-                }
-
-                var propertyType = prop.PropertyType;
-                var propertyValue = prop.GetValue(this, null);
-
-                // if property type is BusinessObject, let it auto-load from XML.
-                if (typeof(BusinessObject).IsAssignableFrom(propertyType)) {
-                    ((BusinessObject)propertyValue).ReadXml(r);
-                    continue;
-                }
-
-                // if property type is List<T>, assume it's of BusinessObjects and try to fetch them from XML.
-                var tList = typeof (List<>);
-                if (propertyType.IsGenericType && tList.IsAssignableFrom(propertyType.GetGenericTypeDefinition()) ||
-                    propertyType.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == tList)) {
-                    ReadXmlList(propertyValue, prop.Name, r);
-                    continue;
-                }
-
-                prop.SetValue(this, r.ReadElementContentAs(propertyType, null), null);
-            }
-            r.ReadEndElement();
-        }
-
-        /// <summary>
-        /// Serializes one or more XML elements into a List of BusinessObjects.
-        /// </summary>
-        /// <param name="propertyValue">Property value. Must be a List of BusinessObject instances.</param>
-        /// <param name="propertyName">Property name.</param>
-        /// <param name="r">Active XML stream reader.</param>
-        private static void ReadXmlList(object propertyValue, string propertyName,  XmlReader r) {
-
-            // retrieve type of list elements.
-            var elementType = propertyValue.GetType().GetGenericArguments().Single();
-
-            // quit if it's not a BusinessObject subclass.
-            if (elementType.BaseType == null) return;
-            if (!typeof(BusinessObject).IsAssignableFrom(elementType)) return;
-
-            // clear the list first.
-            propertyValue.GetType().GetMethod("Clear").Invoke(propertyValue, null);
-
-            while (r.NodeType == XmlNodeType.Element && r.Name == propertyName) {
-                var bo = Activator.CreateInstance(elementType);
-                ((BusinessObject)bo).ReadXml(r);
-                propertyValue.GetType().GetMethod("Add").Invoke(propertyValue, new[] { bo });
-            }
-        }
-        #endregion
 
         #region IEquatable
-        public bool Equals(BusinessObject other)
+        public bool Equals(BusinessObjectBase other)
         {
             if (other == null)
                 return false;
@@ -438,10 +252,10 @@ namespace BusinessObjects.PCL {
             if (obj == null)
                 return false;
 
-            var o = obj as BusinessObject;
-            return o != null && Equals(o);
+            var o = obj as BusinessObjectBase;
+            return o != null && GetType().Name == o.GetType().Name && Equals(o);
         }
-        public static bool operator == (BusinessObject o1, BusinessObject o2)
+        public static bool operator == (BusinessObjectBase o1, BusinessObjectBase o2)
         {
             if ((object)o1 == null || ((object)o2) == null)
                 return Equals(o1, o2);
@@ -449,7 +263,7 @@ namespace BusinessObjects.PCL {
             return o1.Equals(o2);
         }
 
-        public static bool operator != (BusinessObject o1, BusinessObject o2)
+        public static bool operator != (BusinessObjectBase o1, BusinessObjectBase o2)
         {
             if (o1 == null || o2 == null)
                 return !Equals(o1, o2);
